@@ -1,15 +1,9 @@
 "use strict";
 
-const { ControlKind, InputEvent } = require('../../interactive/constants/MixplayConstants');
-const effectModels = require("../models/effectModels");
-const { EffectTrigger } = effectModels;
-
 const { EffectCategory } = require('../../../shared/effect-constants');
 const commandHandler = require("../../chat/commands/commandHandler");
 
-/**
- * The Delay effect
- */
+/** @type {import("../models/effectModels").Effect} */
 const model = {
     /**
    * The definition of the Effect
@@ -20,17 +14,8 @@ const model = {
         description: "Runs effects saved for the selected custom command.",
         icon: "fad fa-exclamation-square",
         categories: [EffectCategory.ADVANCED],
-        dependencies: [],
-        triggers: effectModels.buildEffectTriggersObject(
-            [ControlKind.BUTTON, ControlKind.TEXTBOX],
-            [InputEvent.MOUSEDOWN, InputEvent.KEYDOWN, InputEvent.SUBMIT],
-            EffectTrigger.ALL
-        )
+        dependencies: []
     },
-    /**
-   * Global settings that will be available in the Settings tab
-   */
-    globalSettings: {},
     /**
    * The HTML template for the Options view (ie options when effect is added to something such as a button.
    * You can alternatively supply a url to a html file via optionTemplateUrl
@@ -48,7 +33,7 @@ const model = {
                 </ui-select-choices>
             </ui-select>
 
-            <ui-select ng-model="effect.customCommandId" theme="bootstrap" ng-show="effect.commandType === 'custom'">
+            <ui-select ng-model="effect.commandId" theme="bootstrap" ng-show="effect.commandType === 'custom'">
                 <ui-select-match placeholder="Select or search for a command... ">{{$select.selected.trigger}}</ui-select-match>
                 <ui-select-choices repeat="command.id as command in customCommands | filter: { trigger: $select.search }" style="position:relative;">
                     <div ng-bind-html="command.trigger | highlight: $select.search"></div>
@@ -74,6 +59,12 @@ const model = {
    * The controller for the front end Options
    */
     optionsController: ($scope, commandsService) => {
+
+        // if commandType is null we must assume "custom" to maintain backwards compat
+        if ($scope.effect.commandType == null) {
+            $scope.effect.commandType = "custom";
+        }
+
         $scope.systemCommands = commandsService.getSystemCommands();
         $scope.customCommands = commandsService.getCustomCommands();
     },
@@ -98,11 +89,11 @@ const model = {
             let { effect, trigger } = event;
             trigger.metadata.username = effect.username;
 
-            if (effect.commandType === "custom") {
-                commandHandler.runCustomCommandFromEffect(effect.customCommandId, trigger, effect.args);
-            } else {
+            if (effect.commandType === "system") {
                 commandHandler.runSystemCommandFromEffect(effect.systemCommandId, trigger, effect.args);
-                resolve(true);
+            } else {
+                // always fall back to custom command to ensure backwards compat
+                commandHandler.runCustomCommandFromEffect(effect.commandId || effect.customCommandId, trigger, effect.args);
             }
             resolve(true);
         });
