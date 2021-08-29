@@ -21,9 +21,27 @@
                     cellController: () => {}
                 },
                 {
-                    name: "GIVEAWAY ITEM",
-                    icon: "fa-magic",
+                    name: "ITEM",
+                    icon: "fa-gift",
                     cellTemplate: `{{data.giveawayItem}}`,
+                    cellControler: () => {}
+                },
+                {
+                    name: "ENTRIES",
+                    icon: "fa-th-list",
+                    cellTemplate: `{{data.giveawayEntries ? data.giveawayEntries.length : 0}}`,
+                    cellControler: () => {}
+                },
+                {
+                    name: "WINNER",
+                    icon: "fa-trophy",
+                    cellTemplate: `{{data.winner ? data.winner : "-"}}`,
+                    cellControler: () => {}
+                },
+                {
+                    name: "OPEN/CLOSED",
+                    icon: "fa-unlock",
+                    cellTemplate: `{{data.isOpen ? "Open" : "Closed"}}`,
                     cellControler: () => {}
                 }
             ];
