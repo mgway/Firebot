@@ -163,6 +163,9 @@ exports.whenReady = async () => {
     const channelRewardManager = require("../../../channel-rewards/channel-reward-manager");
     await channelRewardManager.loadChannelRewards();
 
+    const giveawaysManager = require("../../../giveaways/giveaways-manager");
+    await giveawaysManager.loadGiveaways();
+
     // load activity feed manager
     require("../../../events/activity-feed-manager");
 

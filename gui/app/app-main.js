@@ -111,7 +111,8 @@
         timerService,
         channelRewardsService,
         sortTagsService,
-        streamTagsService
+        streamTagsService,
+        giveawaysService
     ) {
         // 'chatMessagesService' is included so its instantiated on app start
 
@@ -147,6 +148,8 @@
         sortTagsService.loadSortTags();
 
         streamTagsService.loadAllStreamTags();
+
+        giveawaysService.loadGiveaways();
 
         //start notification check
         $timeout(() => {
