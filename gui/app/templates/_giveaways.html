@@ -1,0 +1,14 @@
+<firebot-item-table
+    items="giveawaysService.giveaways"
+    on-items-update="onGiveawayUpdated(items)"
+    headers="headers"
+    sort-tag-context="giveaways"
+    orderable="true"
+    add-new-button-text="New Giveaway"
+    on-add-new-clicked="giveawaysService.showAddEditGiveawayModal()"
+    context-menu-options="giveawayOptions(item)"
+    no-data-message="No giveaways saved. You should make one! :)"
+    none-found-message="No giveaway found."
+    search-placeholder="Search giveaways"
+    test-button="false"
+></firebot-item-table>
