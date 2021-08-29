@@ -42,7 +42,8 @@
                     service.currentTab.toLowerCase() === "timers" ||
                     service.currentTab.toLowerCase() === "channel rewards" ||
                     service.currentTab.toLowerCase() === "moderation" ||
-                    service.currentTab.toLowerCase() === "buttons"
+                    service.currentTab.toLowerCase() === "buttons" ||
+                    service.currentTab.toLowerCase() === "giveaways"
                 );
             };
 
@@ -54,7 +55,8 @@
                     service.currentTab.toLowerCase() === "timers" ||
                     service.currentTab.toLowerCase() === "channel rewards" ||
                     service.currentTab.toLowerCase() === "events" ||
-                    service.currentTab.toLowerCase() === "commands"
+                    service.currentTab.toLowerCase() === "commands" ||
+                    service.currentTab.toLowerCase() === "giveaways"
                 );
             };
 

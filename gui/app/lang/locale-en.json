@@ -16,11 +16,13 @@
     "OTHER": {
       "OTHER": "Other",
       "EVENTS": "Events",
+      "TIMERS": "Timers",
+      "CHANNELREWARDS": "Channel Rewards",
       "PRESET_EFFECT_LISTS": "Preset Effect Lists",
       "EFFECT_QUEUES": "Effect Queues",
-      "TIMERS": "Timers",
       "HOTKEYS": "Hotkeys",
-      "CHANNELREWARDS": "Channel Rewards"
+      "COUNTERS": "Counters",
+      "GIVEAWAYS": "Giveaways"
     },
     "MANAGEMENT": {
       "MANAGEMENT": "Management",
