@@ -73,7 +73,7 @@ const model = {
    */
     optionsValidator: effect => {
         let errors = [];
-        if (effect.commandType === "custom" && (effect.customCommandId == null || effect.customCommandId === "")) {
+        if (effect.commandType === "custom" && (effect.commandId == null || effect.commandId === "")) {
             errors.push("Please select a custom command to run.");
         }
         if (effect.commandType === "system" && (effect.systemCommandId == null || effect.systemCommandId === "")) {
@@ -87,13 +87,18 @@ const model = {
     onTriggerEvent: event => {
         return new Promise(resolve => {
             let { effect, trigger } = event;
-            trigger.metadata.username = effect.username;
+
+            const clonedTrigger = JSON.parse(JSON.stringify(trigger));
+
+            if (effect.username != null && effect.username.length > 0) {
+                clonedTrigger.metadata.username = effect.username;
+            }
 
             if (effect.commandType === "system") {
-                commandHandler.runSystemCommandFromEffect(effect.systemCommandId, trigger, effect.args);
+                commandHandler.runSystemCommandFromEffect(effect.systemCommandId, clonedTrigger, effect.args);
             } else {
                 // always fall back to custom command to ensure backwards compat
-                commandHandler.runCustomCommandFromEffect(effect.commandId || effect.customCommandId, trigger, effect.args);
+                commandHandler.runCustomCommandFromEffect(effect.commandId || effect.customCommandId, clonedTrigger, effect.args);
             }
             resolve(true);
         });
