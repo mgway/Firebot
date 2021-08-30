@@ -4,13 +4,13 @@
         .module("firebotApp")
         .controller("giveawaysController", function(
             $scope,
-            giveawayssService,
+            giveawaysService,
             utilityService
         ) {
-            $scope.giveawayssService = giveawayssService;
+            $scope.giveawaysService = giveawaysService;
 
             $scope.onGiveawaysUpdated = (items) => {
-                giveawayssService.saveAllGiveaways(items);
+                giveawaysService.saveAllGiveaways(items);
             };
 
             $scope.headers = [
@@ -51,13 +51,13 @@
                     {
                         html: `<a href ><i class="far fa-pen" style="margin-right: 10px;"></i> Edit</a>`,
                         click: function () {
-                            giveawayssService.showAddEditGiveawayModal(item);
+                            giveawaysService.showAddEditGiveawayModal(item);
                         }
                     },
                     {
                         html: `<a href ><i class="far fa-clone" style="margin-right: 10px;"></i> Duplicate</a>`,
                         click: function () {
-                            giveawayssService.duplicateGiveaway(item.id);
+                            giveawaysService.duplicateGiveaway(item.id);
                         }
                     },
                     {
@@ -72,7 +72,7 @@
                                 })
                                 .then(confirmed => {
                                     if (confirmed) {
-                                        giveawayssService.deleteGiveaway(item.id);
+                                        giveawaysService.deleteGiveaway(item.id);
                                     }
                                 });
 

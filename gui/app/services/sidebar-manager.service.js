@@ -158,6 +158,11 @@
                 .when("/games", {
                     templateUrl: "./templates/_games.html",
                     controller: "gamesController"
+                })
+
+                .when("/giveaways", {
+                    templateUrl: "./templates/_giveaways.html",
+                    controller: "giveawaysController"
                 });
         }
     ]);

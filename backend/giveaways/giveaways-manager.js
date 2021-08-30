@@ -1,8 +1,8 @@
 "use strict";
 
-const logger = require("../../logwrapper");
-const profileManager = require("../../common/profile-manager");
-const frontendCommunicator = require("../../common/frontend-communicator");
+const logger = require("../logwrapper");
+const profileManager = require("../common/profile-manager");
+const frontendCommunicator = require("../common/frontend-communicator");
 
 /**
  * @typedef SavedGiveaway
