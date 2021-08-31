@@ -1,12 +1,28 @@
 "use strict";
 
+const commandManager = require("../chat/commands/CommandManager");
+const frontendCommunicator = require("../common/frontend-communicator");
+
+let giveawayCommandId = "";
+let giveawayCommand = {};
+
+function registerGiveawayCommand() {
+    if (!commandManager.hasSystemCommand(giveawayCommandId)) {
+        commandManager.registerSystemCommand(giveawayCommand);
+    }
+}
+
+function unregisterGiveawayCommand() {
+    commandManager.unregisterSystemCommand(giveawayCommandId);
+}
 
 function createGiveawayCommandDefinition(giveaway) {
-    const cleanName = giveaway.name.replace(/\s+/g, '-').toLowerCase(); // lowecase and replace spaces with dash.
+    giveawayCommandId = "firebot:giveaways:" + giveaway.id;
+    const cleanName = giveaway.name.replace(/\s+/g, '-').toLowerCase(); // lowercase and replace spaces with dash.
 
-    return {
+    giveawayCommand = {
         definition: {
-            id: "firebot:giveaways:" + giveaway.id,
+            id: giveawayCommandId,
             name: giveaway.name + " Management",
             active: true,
             trigger: "!" + cleanName,
@@ -133,6 +149,22 @@ function createGiveawayCommandDefinition(giveaway) {
         },
         onTriggerEvent: async () => {}
     };
+
+    registerGiveawayCommand();
 }
 
+frontendCommunicator.on("createGiveawayCommandDefinition", giveaway => {
+    createGiveawayCommandDefinition(giveaway);
+});
+
+frontendCommunicator.on("registerGiveawayCommand", () => {
+    registerGiveawayCommand();
+});
+
+frontendCommunicator.on("unregisterGiveawayCommand", () => {
+    unregisterGiveawayCommand();
+});
+
 exports.createGiveawayCommandDefinition = createGiveawayCommandDefinition;
+exports.registerGiveawayCommand = registerGiveawayCommand;
+exports.unregisterGiveawayCommand = unregisterGiveawayCommand;

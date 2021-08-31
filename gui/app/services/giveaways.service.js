@@ -10,7 +10,7 @@
 
             service.giveaways = [];
 
-            function updateGiveaway(giveaway) {
+            function updateGiveaways(giveaway) {
                 const index = service.giveaways.findIndex(g => g.id === giveaway.id);
                 if (index > -1) {
                     service.giveaways[index] = giveaway;
@@ -46,7 +46,7 @@
                 return $q.when(backendCommunicator.fireEventAsync("saveGiveaway", giveaway))
                     .then(savedGiveaway => {
                         if (savedGiveaway) {
-                            updateGiveaway(giveaway);
+                            updateGiveaways(giveaway);
                             return true;
                         }
                         return false;
