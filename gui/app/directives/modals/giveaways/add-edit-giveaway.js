@@ -16,8 +16,8 @@
                         <input type="text" class="form-control" placeholder="Enter name" ng-model="$ctrl.giveaway.name">
                     </div>
                     <div>
-                        <h3>Item to giveaway</h3>
-                        <input type="text" class="form-control" placeholder="Enter name" ng-model="$ctrl.giveaway.giveawayItem">
+                        <h3>Prize to giveaway</h3>
+                        <input type="text" class="form-control" placeholder="Enter name" ng-model="$ctrl.giveaway.prize">
                     </div>
 
 
@@ -40,7 +40,7 @@
 
                 $ctrl.giveaway = {
                     name: "",
-                    giveawayItem: "",
+                    prize: "",
                     giveawayEntries: [],
                     winner: "",
                     isOpen: false,
@@ -59,8 +59,8 @@
                         return;
                     }
 
-                    if ($ctrl.giveaway.giveawayItem == null || $ctrl.giveaway.giveawayItem === "") {
-                        ngToast.create("Please provide an item for this Giveaway");
+                    if ($ctrl.giveaway.prize == null || $ctrl.giveaway.prize === "") {
+                        ngToast.create("Please provide a prize for this Giveaway");
                         return;
                     }
 

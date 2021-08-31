@@ -8,7 +8,7 @@ const frontendCommunicator = require("../common/frontend-communicator");
  * @typedef SavedGiveaway
  * @property {string} id - the id of the giveaway
  * @property {string} name - the name of the giveaway
- * @property {string} item - the item that will be or has been given away
+ * @property {string} prize - the prize that will be or has been given away
  * @property {string[]} entries - the names of the users that have entered
  * @property {string} [winner] - the winner of the giveaway
  * @property {boolean} isOpen - whether the giveaway is open or closed

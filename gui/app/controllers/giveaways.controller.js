@@ -23,7 +23,7 @@
                 {
                     name: "ITEM",
                     icon: "fa-gift",
-                    cellTemplate: `{{data.giveawayItem}}`,
+                    cellTemplate: `{{data.prize}}`,
                     cellControler: () => {}
                 },
                 {
