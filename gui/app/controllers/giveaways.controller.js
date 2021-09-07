@@ -41,7 +41,7 @@
                 {
                     name: "OPEN/CLOSED",
                     icon: "fa-unlock",
-                    cellTemplate: `{{data.isOpen ? "Open" : "Closed"}}`,
+                    cellTemplate: `<span class="status-dot" style="margin-right: 5px" ng-class="{'active': data.isOpen, 'closed': !data.isOpen}"></span>{{data.isOpen ? 'Open' : 'Closed' }}`,
                     cellControler: () => {}
                 }
             ];
@@ -52,6 +52,12 @@
                         html: `<a href ><i class="far fa-pen" style="margin-right: 10px;"></i> Edit</a>`,
                         click: () => {
                             giveawaysService.showAddEditGiveawayModal(item);
+                        }
+                    },
+                    {
+                        html: `<a href ><i class="far fa-toggle-off" style="margin-right: 10px;"></i> Toggle Open/Closed</a>`,
+                        click: () => {
+                            giveawaysService.toggleGiveawayOpenState(item);
                         }
                     },
                     {

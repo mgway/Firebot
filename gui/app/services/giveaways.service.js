@@ -90,7 +90,7 @@
                 });
             };
 
-            service.toggleGiveawayActiveState = function(giveaway) {
+            service.toggleGiveawayActiveState = (giveaway) => {
                 if (giveaway == null) return;
 
                 if (giveaway.active) {
@@ -101,6 +101,12 @@
                     backendCommunicator.fireEvent("registerGiveawayCommand", giveaway);
                 }
 
+                service.saveGiveaway(giveaway);
+            };
+
+            service.toggleGiveawayOpenState = (giveaway) => {
+                if (giveaway == null) return;
+                giveaway.isOpen = !giveaway.isOpen;
                 service.saveGiveaway(giveaway);
             };
 
