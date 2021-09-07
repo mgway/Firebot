@@ -1,29 +1,18 @@
 "use strict";
 
 const commandManager = require("../chat/commands/CommandManager");
-const frontendCommunicator = require("../common/frontend-communicator");
 
 let giveawayCommandId = "";
 let giveawayCommand = {};
 
-function registerGiveawayCommand() {
-    if (!commandManager.hasSystemCommand(giveawayCommandId)) {
-        commandManager.registerSystemCommand(giveawayCommand);
-    }
-}
-
-function unregisterGiveawayCommand() {
-    commandManager.unregisterSystemCommand(giveawayCommandId);
-}
-
-function createGiveawayCommandDefinition(giveaway) {
+const getGiveawayCommandDefinition = (giveaway) => {
     giveawayCommandId = "firebot:giveaways:" + giveaway.id;
     const cleanName = giveaway.name.replace(/\s+/g, '-').toLowerCase(); // lowercase and replace spaces with dash.
 
     giveawayCommand = {
         definition: {
             id: giveawayCommandId,
-            name: giveaway.name + " Management",
+            name: giveaway.name + " Giveaway",
             active: true,
             trigger: "!" + cleanName,
             description: "Allows management of the \"" + giveaway.name + "\" giveaway",
@@ -150,21 +139,21 @@ function createGiveawayCommandDefinition(giveaway) {
         onTriggerEvent: async () => {}
     };
 
-    registerGiveawayCommand();
-}
+    return giveawayCommand;
+};
 
-frontendCommunicator.on("createGiveawayCommandDefinition", giveaway => {
-    createGiveawayCommandDefinition(giveaway);
-});
+const registerGiveawayCommand = (giveaway) => {
+    const giveawayCommandId = "firebot:giveaways:" + giveaway.id;
+    if (!commandManager.hasSystemCommand(giveawayCommandId)) {
+        const giveawayCommand = getGiveawayCommandDefinition(giveaway);
+        commandManager.registerSystemCommand(giveawayCommand);
+    }
+};
 
-frontendCommunicator.on("registerGiveawayCommand", () => {
-    registerGiveawayCommand();
-});
+const unregisterGiveawayCommand = () => {
+    commandManager.unregisterSystemCommand(giveawayCommandId);
+};
 
-frontendCommunicator.on("unregisterGiveawayCommand", () => {
-    unregisterGiveawayCommand();
-});
-
-exports.createGiveawayCommandDefinition = createGiveawayCommandDefinition;
+exports.getGiveawayCommandDefinition = getGiveawayCommandDefinition;
 exports.registerGiveawayCommand = registerGiveawayCommand;
 exports.unregisterGiveawayCommand = unregisterGiveawayCommand;

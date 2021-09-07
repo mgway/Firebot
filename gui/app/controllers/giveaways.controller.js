@@ -2,11 +2,11 @@
 (function() {
     angular
         .module("firebotApp")
-        .controller("giveawaysController", (
+        .controller("giveawaysController", function(
             $scope,
             giveawaysService,
             utilityService
-        ) => {
+        ) {
             $scope.giveawaysService = giveawaysService;
 
             $scope.onGiveawaysUpdated = (items) => {

@@ -4,8 +4,8 @@
 
     angular
         .module("firebotApp")
-        .factory("giveawaysService", ($q, logger, backendCommunicator,
-            utilityService, objectCopyHelper, ngToast) => {
+        .factory("giveawaysService", function($q, backendCommunicator,
+            utilityService, objectCopyHelper, ngToast) {
             let service = {};
 
             service.giveaways = [];
@@ -43,6 +43,10 @@
             };
 
             service.saveGiveaway = (giveaway) => {
+                if (giveaway.active) {
+                    backendCommunicator.fireEvent("registerGivewayCommand", giveaway);
+                }
+
                 return $q.when(backendCommunicator.fireEventAsync("saveGiveaway", giveaway))
                     .then(savedGiveaway => {
                         if (savedGiveaway) {
@@ -88,7 +92,15 @@
 
             service.toggleGiveawayActiveState = function(giveaway) {
                 if (giveaway == null) return;
-                giveaway.active = !giveaway.active;
+
+                if (giveaway.active) {
+                    giveaway.active = false;
+                    backendCommunicator.fireEvent("unregisterGiveawayCommand", "firebot:giveaways:" + giveaway.id);
+                } else {
+                    giveaway.active = true;
+                    backendCommunicator.fireEvent("registerGiveawayCommand", giveaway);
+                }
+
                 service.saveGiveaway(giveaway);
             };
 

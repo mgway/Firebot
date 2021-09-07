@@ -3,6 +3,7 @@
 const logger = require("../logwrapper");
 const profileManager = require("../common/profile-manager");
 const frontendCommunicator = require("../common/frontend-communicator");
+const giveawayCommand = require("./giveaway-command");
 
 /**
  * @typedef SavedGiveaway
@@ -23,6 +24,16 @@ const getGiveawaysDb = () => {
         .getJsonDbInProfile("giveaways");
 };
 
+const registerGiveawayCommands = () => {
+    if (giveaways) {
+        const activeGiveaways = Object.values(giveaways).filter(g => g.active);
+
+        for (const giveaway of activeGiveaways) {
+            giveawayCommand.registerGiveawayCommand(giveaway);
+        }
+    }
+};
+
 const loadGiveaways = () => {
     logger.debug(`Attempting to load giveaways...`);
 
@@ -35,6 +46,7 @@ const loadGiveaways = () => {
             giveaways = giveawaysData;
         }
 
+        registerGiveawayCommands();
         logger.debug(`Loaded giveaways.`);
     } catch (err) {
         logger.warn(`There was an error reading giveaways file.`, err);
@@ -129,6 +141,14 @@ frontendCommunicator.onAsync("saveAllGiveaways",
 
 frontendCommunicator.on("deleteGiveaway", (giveawayId) => {
     deleteGiveaway(giveawayId);
+});
+
+frontendCommunicator.on("registerGiveawayCommand", giveaway => {
+    giveawayCommand.registerGiveawayCommand(giveaway);
+});
+
+frontendCommunicator.on("unregisterGiveawayCommand", giveawayCommandId => {
+    giveawayCommand.unregisterGiveawayCommand(giveawayCommandId);
 });
 
 exports.loadGiveaways = loadGiveaways;
