@@ -4,22 +4,22 @@
 
     angular
         .module("firebotApp")
-        .factory("giveawaysService", function($q, logger, backendCommunicator,
-            utilityService, objectCopyHelper, ngToast) {
+        .factory("giveawaysService", ($q, logger, backendCommunicator,
+            utilityService, objectCopyHelper, ngToast) => {
             let service = {};
 
             service.giveaways = [];
 
-            function updateGiveaways(giveaway) {
+            const updateGiveaways = (giveaway) => {
                 const index = service.giveaways.findIndex(g => g.id === giveaway.id);
                 if (index > -1) {
                     service.giveaways[index] = giveaway;
                 } else {
                     service.giveaways.push(giveaway);
                 }
-            }
+            };
 
-            service.loadGiveaways = async function() {
+            service.loadGiveaways = async () => {
                 $q.when(backendCommunicator.fireEventAsync("getGiveaways"))
                     .then(giveaways => {
                         if (giveaways) {
@@ -34,15 +34,15 @@
                 }
             });
 
-            service.getGiveaways = function() {
+            service.getGiveaways = () => {
                 return Object.values(service.giveaways);
             };
 
-            service.getGiveaway = function(giveawayId) {
+            service.getGiveaway = (giveawayId) => {
                 return service.giveaways.find(g => g.id === giveawayId);
             };
 
-            service.saveGiveaway = function(giveaway) {
+            service.saveGiveaway = (giveaway) => {
                 return $q.when(backendCommunicator.fireEventAsync("saveGiveaway", giveaway))
                     .then(savedGiveaway => {
                         if (savedGiveaway) {
@@ -86,12 +86,18 @@
                 });
             };
 
-            service.deleteGiveaway = function(giveawayId) {
+            service.toggleGiveawayActiveState = function(giveaway) {
+                if (giveaway == null) return;
+                giveaway.active = !giveaway.active;
+                service.saveGiveaway(giveaway);
+            };
+
+            service.deleteGiveaway = (giveawayId) => {
                 service.giveaways = service.giveaways.filter(g => g.id !== giveawayId);
                 backendCommunicator.fireEvent("deleteGiveaway", giveawayId);
             };
 
-            service.showAddEditGiveawayModal = function(giveaway) {
+            service.showAddEditGiveawayModal = (giveaway) => {
                 return new Promise(resolve => {
                     utilityService.showModal({
                         component: "addOrEditGiveawayModal",

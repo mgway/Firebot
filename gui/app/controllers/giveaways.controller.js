@@ -2,11 +2,11 @@
 (function() {
     angular
         .module("firebotApp")
-        .controller("giveawaysController", function(
+        .controller("giveawaysController", (
             $scope,
             giveawaysService,
             utilityService
-        ) {
+        ) => {
             $scope.giveawaysService = giveawaysService;
 
             $scope.onGiveawaysUpdated = (items) => {
@@ -50,19 +50,25 @@
                 const options = [
                     {
                         html: `<a href ><i class="far fa-pen" style="margin-right: 10px;"></i> Edit</a>`,
-                        click: function () {
+                        click: () => {
                             giveawaysService.showAddEditGiveawayModal(item);
                         }
                     },
                     {
+                        html: `<a href ><i class="far fa-toggle-off" style="margin-right: 10px;"></i> Toggle Enabled</a>`,
+                        click: () => {
+                            giveawaysService.toggleGiveawayActiveState(item);
+                        }
+                    },
+                    {
                         html: `<a href ><i class="far fa-clone" style="margin-right: 10px;"></i> Duplicate</a>`,
-                        click: function () {
+                        click: () => {
                             giveawaysService.duplicateGiveaway(item.id);
                         }
                     },
                     {
                         html: `<a href style="color: #fb7373;"><i class="far fa-trash-alt" style="margin-right: 10px;"></i> Delete</a>`,
-                        click: function () {
+                        click: () => {
                             utilityService
                                 .showConfirmationModal({
                                     title: "Delete Giveaway",

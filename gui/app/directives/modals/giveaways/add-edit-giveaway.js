@@ -16,7 +16,7 @@
                         <input type="text" class="form-control" placeholder="Enter name" ng-model="$ctrl.giveaway.name">
                     </div>
                     <div>
-                        <h3>Prize to giveaway</h3>
+                        <h3>Prize to give away</h3>
                         <input type="text" class="form-control" placeholder="Enter name" ng-model="$ctrl.giveaway.prize">
                     </div>
 
@@ -44,6 +44,7 @@
                     giveawayEntries: [],
                     winner: "",
                     isOpen: false,
+                    active: true,
                     sortTags: []
                 };
 

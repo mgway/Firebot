@@ -12,17 +12,18 @@ const frontendCommunicator = require("../common/frontend-communicator");
  * @property {string[]} entries - the names of the users that have entered
  * @property {string} [winner] - the winner of the giveaway
  * @property {boolean} isOpen - whether the giveaway is open or closed
+ * @property {boolean} active - whether the giveaway is active or disabled
  */
 
 /** @type {Object.<string, SavedGiveaway>} */
 let giveaways = {};
 
-function getGiveawaysDb() {
+const getGiveawaysDb = () => {
     return profileManager
         .getJsonDbInProfile("giveaways");
-}
+};
 
-function loadGiveaways() {
+const loadGiveaways = () => {
     logger.debug(`Attempting to load giveaways...`);
 
     const giveawaysDb = getGiveawaysDb();
@@ -38,12 +39,12 @@ function loadGiveaways() {
     } catch (err) {
         logger.warn(`There was an error reading giveaways file.`, err);
     }
-}
+};
 
 /**
  * @param {SavedGiveaway} giveaway
  */
-async function saveGiveaway(giveaway) {
+const saveGiveaway = async (giveaway) => {
     if (giveaway == null) return;
 
     if (giveaway.id != null) {
@@ -66,9 +67,9 @@ async function saveGiveaway(giveaway) {
         logger.warn(`There was an error saving a giveaway.`, err);
         return null;
     }
-}
+};
 
-async function saveAllGiveaways(allGiveaways) {
+const saveAllGiveaways = async (allGiveaways) => {
     const giveawaysObject = allGiveaways.reduce((acc, current) => {
         acc[current.id] = current;
         return acc;
@@ -87,9 +88,9 @@ async function saveAllGiveaways(allGiveaways) {
         logger.warn(`There was an error saving all giveaways.`, err);
         return null;
     }
-}
+};
 
-function deleteGiveaway(giveawayId) {
+const deleteGiveaway = (giveawayId) => {
     if (giveawayId == null) return;
 
     delete giveaways[giveawayId];
@@ -104,16 +105,16 @@ function deleteGiveaway(giveawayId) {
     } catch (err) {
         logger.warn(`There was an error deleting a giveaway.`, err);
     }
-}
+};
 
-function getGiveaway(giveawayId) {
+const getGiveaway = (giveawayId) => {
     if (giveawayId == null) return null;
     return giveaways[giveawayId];
-}
+};
 
-function triggerUiRefresh() {
+const triggerUiRefresh = () => {
     frontendCommunicator.send("all-giveaways", giveaways);
-}
+};
 
 frontendCommunicator.onAsync("getGiveaways", async () => giveaways);
 
