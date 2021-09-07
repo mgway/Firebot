@@ -21,7 +21,7 @@
                     cellController: () => {}
                 },
                 {
-                    name: "ITEM",
+                    name: "PRIZE",
                     icon: "fa-gift",
                     cellTemplate: `{{data.prize}}`,
                     cellControler: () => {}
