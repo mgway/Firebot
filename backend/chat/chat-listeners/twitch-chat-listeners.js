@@ -25,7 +25,7 @@ const HIGHLIGHT_MESSAGE_REWARD_ID = "highlight-message";
 
 /** @arg {import('twitch-chat-client/lib/ChatClient').ChatClient} streamerChatClient */
 exports.setupChatListeners = (streamerChatClient) => {
-    streamerChatClient.onPrivmsg(async (_channel, user, messageText, msg) => {
+    streamerChatClient.onMessage(async (_channel, user, messageText, msg) => {
         const firebotChatMessage = await chatHelpers.buildFirebotChatMessage(msg, messageText);
 
         await chatModerationManager.moderateMessage(firebotChatMessage);
@@ -122,5 +122,17 @@ exports.setupChatListeners = (streamerChatClient) => {
     streamerChatClient.onTimeout((_, username, duration) => {
         twitchEventsHandler.viewerTimeout.triggerTimeout(username, duration);
         frontendCommunicator.send("twitch:chat:user:delete-messages", username);
+    });
+
+    streamerChatClient.onChatClear(() => {
+        frontendCommunicator.send("chat-feed-notification", `Chat cleared.`);
+    });
+
+    streamerChatClient.onNotice((_target, _user, message, msg) => {
+        // Mumbles in non-existing but very useful API endpoints..
+        // We have to ignore this one for now since we request the vips for the role manager
+        if (!msg._tags.get("msg-id") === "vips_success") {
+            frontendCommunicator.send("chat-feed-notification", message);
+        }
     });
 };
