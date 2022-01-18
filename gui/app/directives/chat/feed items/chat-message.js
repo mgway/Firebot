@@ -9,35 +9,39 @@
                 hideDeletedMessages: "<",
                 showAvatar: "<",
                 showTimestamp: "<",
-                showThirdPartyEmotes: "<",
+                showBttvEmotes: "<",
+                showFfzEmotes: "<",
+                showSevenTvEmotes: "<",
                 showPronoun: "<",
                 updateChatInput: "&",
                 chatSizeStyle: "@?"
             },
             template: `
                 <div class="chat-message"
-                    ng-class="{ 
-                        isAction: $ctrl.message.action, 
-                        isWhisper: $ctrl.message.whisper, 
-                        isDeleted: $ctrl.message.deleted, 
-                        isTagged: $ctrl.message.tagged, 
-                        isCompact: $ctrl.compactDisplay, 
-                        spoilers: $ctrl.hideDeletedMessages, 
-                        isHighlighted: $ctrl.message.isHighlighted, 
-                        isCustomReward: $ctrl.message.customRewardId != null 
-                    }" 
+                    ng-class="{
+                        isAction: $ctrl.message.action,
+                        isWhisper: $ctrl.message.whisper,
+                        isDeleted: $ctrl.message.deleted,
+                        isTagged: $ctrl.message.tagged,
+                        isCompact: $ctrl.compactDisplay,
+                        spoilers: $ctrl.hideDeletedMessages,
+                        isHighlighted: $ctrl.message.isHighlighted,
+                        isCustomReward: $ctrl.message.customRewardId != null
+                    }"
                     ng-attr-messageId="{{$ctrl.message.id}}"
                     context-menu="$ctrl.getMessageContextMenu($ctrl.message)"
+                    context-menu-class="chat-message-context-menu"
                     context-menu-on="contextmenu"
                 >
-                    <div 
+                    <div
                         ng-if="!$ctrl.compactDisplay"
                         ng-show="$ctrl.showAvatar"
-                        class="chat-user-avatar-wrapper" 
+                        class="chat-user-avatar-wrapper"
                         context-menu="$ctrl.getMessageContextMenu($ctrl.message)"
+                        context-menu-class="chat-message-context-menu"
                         context-menu-on="click"
                     >
-                        <img class="chat-user-avatar" ng-src="{{$ctrl.message.profilePicUrl}}">              
+                        <img class="chat-user-avatar" ng-src="{{$ctrl.message.profilePicUrl}}">
                     </div>
                     <div>
 
@@ -45,37 +49,39 @@
                             {{$ctrl.message.timestampDisplay}}
                         </span>
 
-                        <div 
+                        <div
                             ng-if="$ctrl.compactDisplay"
-                            class="chat-user-avatar-wrapper" 
+                            class="chat-user-avatar-wrapper"
                             ng-show="$ctrl.showAvatar"
                             context-menu="$ctrl.getMessageContextMenu($ctrl.message)"
+                            context-menu-class="chat-message-context-menu"
                             context-menu-on="click"
                         >
-                            <img class="chat-user-avatar" ng-src="{{$ctrl.message.profilePicUrl}}">              
+                            <img class="chat-user-avatar" ng-src="{{$ctrl.message.profilePicUrl}}">
                         </div>
 
-                        <div 
-                            class="chat-username" 
+                        <div
+                            class="chat-username"
                             context-menu="$ctrl.getMessageContextMenu($ctrl.message)"
+                            context-menu-class="chat-message-context-menu"
                             context-menu-on="click"
                         >
                             <div ng-show="$ctrl.message.badges.length > 0" class="user-badges">
-                                <img ng-repeat="badge in $ctrl.message.badges" 
+                                <img ng-repeat="badge in $ctrl.message.badges"
                                     ng-src="{{badge.url}}"
-                                    uib-tooltip="{{badge.title}}" 
+                                    uib-tooltip="{{badge.title}}"
                                     tooltip-append-to-body="true" />
                             </div>
-                            <span 
-                                class="pronoun" 
-                                uib-tooltip="Pronouns" 
-                                tooltip-append-to-body="true" 
-                                ng-click="$root.openLinkExternally('https://pronouns.alejo.io/')" 
+                            <span
+                                class="pronoun"
+                                uib-tooltip="Pronouns"
+                                tooltip-append-to-body="true"
+                                ng-click="$root.openLinkExternally('https://pronouns.alejo.io/')"
                                 ng-show="$ctrl.showPronoun && $ctrl.pronouns.pronounCache[$ctrl.message.username] != null"
                             >{{$ctrl.pronouns.pronounCache[$ctrl.message.username]}}</span>
                             <b ng-style="{'color': $ctrl.message.color}">{{$ctrl.message.username}}</b>
-                            <span 
-                                ng-if="$ctrl.compactDisplay && !$ctrl.message.action" 
+                            <span
+                                ng-if="$ctrl.compactDisplay && !$ctrl.message.action"
                                 style="color:white;font-weight:200;"
                             >:</span>
                             <span ng-if="!$ctrl.compactDisplay" ng-show="$ctrl.showTimestamp" class="muted chat-timestamp">
@@ -89,8 +95,8 @@
 
                                 <a ng-if="part.type === 'link'" ng-href="{{part.url}}" target="_blank">{{part.text}}</a>
 
-                                <span 
-                                    ng-if="part.type === 'emote'" 
+                                <span
+                                    ng-if="part.type === 'emote'"
                                     class="chatEmoticon"
                                     uib-tooltip="{{part.origin}}: {{part.name}}"
                                     tooltip-append-to-body="true"
@@ -98,29 +104,52 @@
                                     <img ng-src="{{part.url}}" style="height: 100%;">
                                 </span>
 
-                                <span 
-                                    ng-if="part.type === 'third-party-emote' && $ctrl.showThirdPartyEmotes" 
+                                <span
+                                    ng-if="part.origin === 'BTTV' && $ctrl.showBttvEmotes"
                                     class="chatEmoticon"
                                     uib-tooltip="{{part.origin}}: {{part.name}}"
                                     tooltip-append-to-body="true"
                                 >
                                     <img ng-src="{{part.url}}" style="height: 100%;" />
                                 </span>
-                                <span ng-if="part.type === 'third-party-emote' && !$ctrl.showThirdPartyEmotes" style="{{$ctrl.chatSizeStyle}}">{{part.name}}</span>
+                                <span ng-if="part.origin === 'BTTV' && !$ctrl.showBttvEmotes" style="{{$ctrl.chatSizeStyle}}">{{part.name}}</span>
+
+                                <span
+                                    ng-if="part.origin === 'FFZ' && $ctrl.showFfzEmotes"
+                                    class="chatEmoticon"
+                                    uib-tooltip="{{part.origin}}: {{part.name}}"
+                                    tooltip-append-to-body="true"
+                                >
+                                    <img ng-src="{{part.url}}" style="height: 100%;" />
+                                </span>
+                                <span ng-if="part.origin === 'FFZ' && !$ctrl.showFfzEmotes" style="{{$ctrl.chatSizeStyle}}">{{part.name}}</span>
+
+                                <span
+                                    ng-if="part.origin === '7TV' && $ctrl.showSevenTvEmotes"
+                                    class="chatEmoticon"
+                                    uib-tooltip="{{part.origin}}: {{part.name}}"
+                                    tooltip-append-to-body="true"
+                                >
+                                    <img ng-src="{{part.url}}" style="height: 100%;" />
+                                </span>
+                                <span ng-if="part.origin === '7TV' && !$ctrl.showSevenTvEmotes" style="{{$ctrl.chatSizeStyle}}">{{part.name}}</span>
                             </span>
                         </div>
                         <div ng-show="$ctrl.message.whisper" class="muted">(Whispered to you)</div>
                     </div>
                 </div>
             `,
-            controller: function(chatMessagesService, utilityService, connectionService, pronounsService) {
+            controller: function(chatMessagesService, utilityService, connectionService, pronounsService, backendCommunicator) {
 
                 const $ctrl = this;
 
                 $ctrl.pronouns = pronounsService;
 
                 $ctrl.showUserDetailsModal = (userId) => {
-                    if (userId == null) return;
+                    if (userId == null) {
+                        return;
+                    }
+
                     let closeFunc = () => {};
                     utilityService.showModal({
                         component: "viewerDetailsModal",
@@ -148,7 +177,7 @@
                     });
 
                     actions.push({
-                        name: "Delete",
+                        name: "Delete This Message",
                         icon: "fa-trash-alt"
                     });
 
@@ -157,17 +186,17 @@
                         icon: "fa-at"
                     });
 
-                    if (message.username !== connectionService.accounts.streamer.username &&
-                        message.username !== connectionService.accounts.bot.username) {
+                    actions.push({
+                        name: "Quote This Message",
+                        icon: "fa-quote-right"
+                    });
+
+                    if (message.username.toLowerCase() !== connectionService.accounts.streamer.username.toLowerCase() &&
+                        message.username.toLowerCase() !== connectionService.accounts.bot.username.toLowerCase()) {
 
                         actions.push({
                             name: "Whisper",
                             icon: "fa-envelope"
-                        });
-
-                        actions.push({
-                            name: "Quote This Message",
-                            icon: "fa-quote-right"
                         });
 
                         actions.push({
@@ -190,6 +219,18 @@
                                 name: "Mod",
                                 icon: "fa-user-plus"
                             });
+
+                            if (message.roles.includes("vip")) {
+                                actions.push({
+                                    name: "Remove VIP",
+                                    icon: "fa-gem"
+                                });
+                            } else {
+                                actions.push({
+                                    name: "Add as VIP",
+                                    icon: "fa-gem"
+                                });
+                            }
                         }
 
                         actions.push({
@@ -207,39 +248,83 @@
                         {
                             html: `<div class="name-wrapper">
                                     <img class="user-avatar" src="${message.profilePicUrl}">
-                                    <span style="margin-left: 10px" class="user-name">${message.username}</span>   
+                                    <span style="margin-left: 10px" class="user-name">${message.username}</span>
                                 </div>`,
                             enabled: false
                         },
-                        ...actions.map(a => ({
-                            html: `
-                                <div class="message-action">
-                                    <span class="action-icon"><i class="fad ${a.icon}"></i></span>
-                                    <span class="action-name">${a.name}</span>                               
-                                </div>
-                            `,
-                            click: () => {
-                                $ctrl.messageActionSelected(a.name, message.username, message.userId, message.id, message.rawText);
+                        ...actions.map(a => {
+                            let html = "";
+                            if (a.name === "Remove VIP") {
+                                html = `
+                                    <div class="message-action">
+                                        <span class="fa-stack fa-1x mr-3" style="width: 18px">
+                                            <i class="fad fa-gem fa-stack-1x ml-px mt-1" style="opacity: 0.5"></i>
+                                            <i class="far fa-slash fa-stack-1x text-2xl"></i>
+                                        </span>
+                                        <span class="action-name">${a.name}</span>
+                                    </div>
+                                `;
+                            } else {
+                                html = `
+                                    <div class="message-action">
+                                        <span class="action-icon"><i class="fad ${a.icon}"></i></span>
+                                        <span class="action-name">${a.name}</span>
+                                    </div>
+                                `;
                             }
-                        }))];
+                            return {
+                                html: html,
+                                click: () => {
+                                    $ctrl.messageActionSelected(a.name, message.username, message.userId, message.id, message.rawText);
+                                }
+                            };
+                        })];
                 };
 
                 $ctrl.messageActionSelected = (action, userName, userId, msgId, rawText) => {
                     switch (action.toLowerCase()) {
-                    case "delete":
+                    case "delete this message":
                         chatMessagesService.deleteMessage(msgId);
                         break;
                     case "timeout":
                         updateChatField(`/timeout @${userName} 300`);
                         break;
                     case "ban":
-                        updateChatField(`/ban @${userName}`);
+                        utilityService
+                            .showConfirmationModal({
+                                title: "Ban User",
+                                question: `Are you sure you want to ban ${userName}?`,
+                                confirmLabel: "Ban",
+                                confirmBtnType: "btn-danger"
+                            })
+                            .then(confirmed => {
+                                if (confirmed) {
+                                    backendCommunicator.fireEvent("update-user-banned-status", { username: userName, shouldBeBanned: true });
+                                }
+                            });
                         break;
                     case "mod":
                         chatMessagesService.changeModStatus(userName, true);
                         break;
                     case "unmod":
-                        chatMessagesService.changeModStatus(userName, false);
+                        utilityService
+                            .showConfirmationModal({
+                                title: "Mod User",
+                                question: `Are you sure you want to unmod ${userName}?`,
+                                confirmLabel: "Unmod",
+                                confirmBtnType: "btn-danger"
+                            })
+                            .then(confirmed => {
+                                if (confirmed) {
+                                    chatMessagesService.changeModStatus(userName, false);
+                                }
+                            });
+                        break;
+                    case "add as vip":
+                        backendCommunicator.fireEvent("update-user-vip-status", { username: userName, shouldBeVip: true });
+                        break;
+                    case "remove vip":
+                        backendCommunicator.fireEvent("update-user-vip-status", { username: userName, shouldBeVip: false });
                         break;
                     case "whisper":
                         updateChatField(`/w @${userName} `);

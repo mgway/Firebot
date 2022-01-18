@@ -97,7 +97,9 @@
             };
 
             service.triggerExists = function(trigger, id = null) {
-                if (trigger == null) return false;
+                if (trigger == null) {
+                    return false;
+                }
 
                 trigger = trigger != null ? trigger.toLowerCase() : "";
 

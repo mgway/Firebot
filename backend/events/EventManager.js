@@ -6,8 +6,7 @@ const EventEmitter = require("events");
 const util = require("../utility");
 const eventsRouter = require("./events-router");
 const eventsAccess = require("./events-access");
-const frontendCommuncator = require("../common/frontend-communicator");
-const accountAccess = require("../common/account-access");
+const frontendCommunicator = require("../common/frontend-communicator");
 
 /**@extends NodeJS.EventEmitter */
 class EventManager extends EventEmitter {
@@ -64,14 +63,14 @@ class EventManager extends EventEmitter {
         return events;
     }
 
-    triggerEvent(sourceId, eventId, meta, isManual = false, isRetrigger = false) {
+    triggerEvent(sourceId, eventId, meta, isManual = false, isRetrigger = false, isSimulation = false) {
         let source = this.getEventSourceById(sourceId);
         let event = this.getEventById(sourceId, eventId);
         if (event == null) {
             return;
         }
 
-        if (isManual) {
+        if (isManual && !isSimulation) {
             meta = event.manualMetadata || {};
         }
         if (meta == null) {
@@ -83,7 +82,7 @@ class EventManager extends EventEmitter {
             meta.username = accountAccess.getAccounts().streamer.username;
         }
 
-        eventsRouter.onEventTriggered(event, source, meta, isManual, isRetrigger);
+        eventsRouter.onEventTriggered(event, source, meta, isManual, isRetrigger, isSimulation);
 
         if (!isManual && !isRetrigger) {
             if (!eventsRouter.cacheActivityFeedEvent(source, event, meta)) {
@@ -138,8 +137,19 @@ ipcMain.on("triggerManualEvent", function(_, data) {
     eventsRouter.runEventEffects(eventSettings.effects, event, source, meta, true);
 });
 
-frontendCommuncator.on("simulateEvent", ({eventSourceId, eventId}) => {
-    manager.triggerEvent(eventSourceId, eventId, null, true);
+frontendCommunicator.on("simulateEvent", (eventData) => {
+    if (Object.keys(eventData.metadata).length > 0) {
+        manager.triggerEvent(eventData.sourceId, eventData.eventId, eventData.metadata, true, false, true);
+    } else {
+        manager.triggerEvent(eventData.sourceId, eventData.eventId, null, true, false, true);
+    }
+});
+
+frontendCommunicator.onAsync("getEventSource", async (event) => {
+    const allEventSources = JSON.parse(JSON.stringify(manager.getAllEventSources()));
+    const filteredSource = allEventSources.find(es => es.id === event.sourceId);
+
+    return filteredSource.events.find(s => s.id === event.eventId);
 });
 
 module.exports = manager;

@@ -110,30 +110,20 @@ exports.setupChatListeners = (streamerChatClient) => {
         }
     });
 
-    streamerChatClient.onCommunitySub((_channel, _user, subInfo, msg) => {
+    streamerChatClient.onCommunitySub((_channel, _user, subInfo) => {
         twitchEventsHandler.giftSub.triggerCommunitySubGift(subInfo);
     });
 
-    streamerChatClient.onGiftPaidUpgrade((_channel, _user, subInfo, msg) => {
+    streamerChatClient.onGiftPaidUpgrade((_channel, _user, subInfo) => {
         twitchEventsHandler.giftSub.triggerSubGiftUpgrade(subInfo);
     });
 
-    streamerChatClient.onPrimePaidUpgrade((_channel, _user, subInfo, msg) => {
+    streamerChatClient.onPrimePaidUpgrade((_channel, _user, subInfo) => {
         twitchEventsHandler.sub.triggerPrimeUpgrade(subInfo);
     });
 
     streamerChatClient.onRaid((_channel, _username, raidInfo) => {
         twitchEventsHandler.raid.triggerRaid(raidInfo.displayName, raidInfo.viewerCount);
-    });
-
-    streamerChatClient.onBan((_, username) => {
-        twitchEventsHandler.viewerBanned.triggerBanned(username);
-        frontendCommunicator.send("twitch:chat:user:delete-messages", username);
-    });
-
-    streamerChatClient.onTimeout((_, username, duration) => {
-        twitchEventsHandler.viewerTimeout.triggerTimeout(username, duration);
-        frontendCommunicator.send("twitch:chat:user:delete-messages", username);
     });
 
     streamerChatClient._onVipResult((_, username) => {

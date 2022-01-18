@@ -6,8 +6,8 @@
 
     angular
         .module('firebotApp')
-        .factory('chatMessagesService', function ($rootScope, logger, listenerService, settingsService,
-            soundService, backendCommunicator, $q, pronounsService, accountAccess) {
+        .factory('chatMessagesService', function (logger, listenerService, settingsService,
+            soundService, backendCommunicator, pronounsService, accountAccess) {
             let service = {};
 
             // Chat Message Queue
@@ -171,7 +171,7 @@
                     break;
                 case "UserUpdate":
                     logger.debug("User updated");
-                    service.userUpdate(data);
+                    service.chatUserUpdated(data);
                     break;
                 case "Disconnected":
                     // We disconnected. Clear messages, post alert, and then let the reconnect handle repopulation.
@@ -375,6 +375,12 @@
                     chatMessage.profilePicUrl = "../images/placeholders/default-profile-pic.png";
                 }
 
+                const user = service.chatUsers.find(u => u.id === chatMessage.userId);
+                if (user && user.roles.length !== chatMessage.roles.length) {
+                    user.roles = chatMessage.roles;
+                    service.chatUserUpdated(user);
+                }
+
                 if (settingsService.getRealChatFeed()) {
                     // Push new message to queue.
                     const messageItem = {
@@ -401,8 +407,28 @@
             });
 
             service.allEmotes = [];
+            service.filteredEmotes = [];
+            service.refreshEmotes = () => {
+                service.filteredEmotes = service.allEmotes.filter(e => {
+                    if (settingsService.getShowBttvEmotes() && e.origin === "BTTV") {
+                        return true;
+                    }
+
+                    if (settingsService.getShowFfzEmotes() && e.origin === "FFZ") {
+                        return true;
+                    }
+
+                    if (settingsService.getShowSevenTvEmotes() && e.origin === "7TV") {
+                        return true;
+                    }
+
+                    return false;
+                });
+            };
+
             backendCommunicator.on("all-emotes", (emotes) => {
                 service.allEmotes = emotes;
+                service.refreshEmotes();
             });
 
             // Watches for an chat update from main process

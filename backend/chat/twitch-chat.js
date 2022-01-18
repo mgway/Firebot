@@ -209,7 +209,7 @@ class TwitchChat extends EventEmitter {
      * @param {string} [replyToMessageId] A message id to reply to
      */
     sendChatMessage(message, username, accountType, replyToMessageId) {
-        if (message == null) {
+        if (message == null || message?.length < 1) {
             return null;
         }
 
@@ -481,6 +481,24 @@ frontendCommunicator.on("update-user-banned-status", data => {
         twitchChat.ban(username, "Banned via Firebot");
     } else {
         twitchChat.unban(username);
+    }
+});
+
+frontendCommunicator.on("update-user-vip-status", data => {
+    if (data == null) {
+        return;
+    }
+    const { username, shouldBeVip } = data;
+    if (username == null || shouldBeVip == null) {
+        return;
+    }
+
+    if (shouldBeVip) {
+        twitchChat.addVip(username);
+        chatRolesManager.addVipToVipList(username);
+    } else {
+        twitchChat.removeVip(username);
+        chatRolesManager.removeVipFromVipList(username);
     }
 });
 

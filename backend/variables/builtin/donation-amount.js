@@ -22,13 +22,13 @@ const model = {
         handle: "donationAmount",
         description: "The amount of a donation from StreamLabs/Tipeee/StreamElements/ExtraLife",
         triggers: triggers,
-        categories: [VariableCategory.COMMON, VariableCategory.NUMBERS],
+        categories: [VariableCategory.COMMON, VariableCategory.NUMBERS, VariableCategory.TRIGGER],
         possibleDataOutput: [OutputDataType.NUMBER]
     },
     evaluator: (trigger) => {
-        const dononationAmount = (trigger.metadata.eventData && trigger.metadata.eventData.dononationAmount) || 0;
+        const donationAmount = (trigger.metadata.eventData && trigger.metadata.eventData.donationAmount) || 0;
 
-        return dononationAmount;
+        return donationAmount;
     }
 };
 
