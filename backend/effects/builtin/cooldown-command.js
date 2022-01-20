@@ -159,7 +159,7 @@ const model = {
         return new Promise(resolve => {
             let { effect } = event;
 
-            const commandHandler = require("../../chat/commands/commandHandler");
+            const commandHandler = require("../../chat/commands/command-handler");
 
             if (effect.action === "Add") {
                 commandHandler.manuallyCooldownCommand({

@@ -141,7 +141,7 @@ const commandManagement = {
    */
     onTriggerEvent: event => {
         return new Promise(async (resolve) => {
-            const commandManager = require("../CommandManager");
+            const commandManager = require("../command-manager");
             const chat = require("../../twitch-chat");
 
             let activeCustomCommands = commandManager.getAllCustomCommands().filter(c => c.active);

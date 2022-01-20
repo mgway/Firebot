@@ -76,7 +76,7 @@ const chat = {
 
         const chatHelpers = require("../../chat/chat-helpers");
 
-        const commandHandler = require("../../chat/commands/commandHandler");
+        const commandHandler = require("../../chat/commands/command-handler");
 
         let messageId = null;
         if (trigger.type === EffectTrigger.COMMAND) {

@@ -3,7 +3,7 @@
 const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
 const logger = require("../logwrapper");
-const systemCommandDefinitionLoader = require("./systemCommandLoader");
+const systemCommandDefinitionLoader = require("./system-command-loader");
 
 /**
  * @typedef SystemCommand

@@ -1,7 +1,7 @@
 "use strict";
 
 const frontendCommunicator = require("../../common/frontend-communicator");
-const commandManager = require("../../chat/commands/CommandManager");
+const commandManager = require("../../chat/commands/command-manager");
 const { EffectCategory } = require('../../../shared/effect-constants');
 
 const chat = {
