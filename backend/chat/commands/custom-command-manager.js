@@ -50,7 +50,9 @@ const moment = require("moment");
  */
 
 /**
+ * @hideconstructor
  * @extends {JsonDbManager<CustomCommand>}
+ * {@link JsonDbManager}
  */
 class CustomCommandManager extends JsonDbManager {
     constructor() {
@@ -76,7 +78,7 @@ class CustomCommandManager extends JsonDbManager {
             command.count = 0;
         }
 
-        const savedCommand = await super.saveItem(command);
+        const savedCommand = super.saveItem(command);
 
         if (savedCommand != null) {
             return savedCommand;
@@ -89,7 +91,7 @@ class CustomCommandManager extends JsonDbManager {
     async deleteItemByTrigger(trigger) {
         const command = this.getAllItems().find(c => c.trigger === trigger);
 
-        await super.deleteItem(command.id);
+        this.deleteItem(command.id);
     }
 
     /**
@@ -97,7 +99,7 @@ class CustomCommandManager extends JsonDbManager {
      * @returns {void}
      */
     triggerUiRefresh() {
-        frontendCommunicator.send("custom-commands-updated", this.getAllItems());
+        frontendCommunicator.send("all-custom-commands", this.getAllItems());
     }
 }
 
@@ -107,10 +109,10 @@ frontendCommunicator.onAsync("getCustomCommands",
     async () => customCommandManager.getAllItems());
 
 frontendCommunicator.onAsync("saveCustomCommand",
-    async (/** @type {CustomCommand} */ {customCommand, user}) => await customCommandManager.saveItem(customCommand, user));
+    async (/** @type {CustomCommand} */ {customCommand, user}) => customCommandManager.saveItem(customCommand, user));
 
 frontendCommunicator.onAsync("saveAllCustomCommands",
-    async (/** @type {CustomCommand[]} */ allCustomCommands) => await customCommandManager.saveAllItems(allCustomCommands));
+    async (/** @type {CustomCommand[]} */ allCustomCommands) => customCommandManager.saveAllItems(allCustomCommands));
 
 frontendCommunicator.on("deleteCustomCommand",
     (/** @type {string} */ customCommandId) => customCommandManager.deleteItem(customCommandId));

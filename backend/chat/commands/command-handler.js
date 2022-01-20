@@ -12,7 +12,6 @@ const { TriggerType } = require("../../common/EffectType");
 const DEFAULT_COOLDOWN_MESSAGE = "This command is still on cooldown for: {timeLeft}";
 const DEFAULT_RESTRICTION_MESSAGE = "Sorry, you cannot use this command because: {reason}";
 
-// commandaccess
 const commandManager = require("./command-manager");
 
 // custom command executor
