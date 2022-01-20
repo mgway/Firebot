@@ -13,9 +13,12 @@ class JsonDbManager {
      * @param {string} type - The type of data in the json file
      * @param {string} path - The path to the json file
      */
-    constructor(type, path) {
+    constructor(type, path, dataPath = "") {
         /** @protected */
         this.type = type;
+
+        /** @protected */
+        this.dataPath = dataPath;
 
         /** @protected */
         this.items = {};
@@ -31,7 +34,7 @@ class JsonDbManager {
         logger.debug(`Attempting to load ${this.type}s...`);
 
         try {
-            const data = this.db.getData("/");
+            const data = this.db.getData(`${this.dataPath}/`);
             if (data) {
                 this.items = data;
             }
@@ -89,7 +92,7 @@ class JsonDbManager {
         this.items[item.id] = item;
 
         try {
-            this.db.push("/" + item.id, item);
+            this.db.push(`${this.dataPath}/` + item.id, item);
 
             logger.debug(`Saved ${this.type} with id ${item.id} to file.`);
             return item;
@@ -112,7 +115,7 @@ class JsonDbManager {
         this.items = itemsObject;
 
         try {
-            this.db.push("/", itemsObject);
+            this.db.push(`${this.dataPath}/`, itemsObject);
 
             logger.debug(`Saved all ${this.type} to file.`);
         } catch (err) {
@@ -132,7 +135,7 @@ class JsonDbManager {
         delete this.items[itemId];
 
         try {
-            this.db.delete("/" + itemId);
+            this.db.delete(`${this.dataPath}/` + itemId);
 
             logger.debug(`Deleted ${this.type}: ${itemId}`);
         } catch (err) {
@@ -147,7 +150,11 @@ class JsonDbManager {
         this.items = {};
 
         try {
-            this.db.resetData("/");
+            if (this.dataPath) {
+                this.db.delete(this.dataPath);
+            } else {
+                this.db.resetData("/");
+            }
 
             logger.debug(`Deleted all ${this.type}s.`);
         } catch (err) {
