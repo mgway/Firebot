@@ -3,7 +3,7 @@
 
 const util = require("../../../utility");
 const twitchChat = require("../../../chat/twitch-chat");
-const commandManager = require("../../../chat/commands/CommandManager");
+const systemCommandManager = require("../../../chat/commands/system-command-manager");
 const gameManager = require("../../game-manager");
 const currencyDatabase = require("../../../database/currencyDatabase");
 const customRolesManager = require("../../../roles/custom-roles-manager");
@@ -235,13 +235,13 @@ const heistCommand = {
 };
 
 function registerHeistCommand() {
-    if (!commandManager.hasSystemCommand(HEIST_COMMAND_ID)) {
-        commandManager.registerSystemCommand(heistCommand);
+    if (!systemCommandManager.hasSystemCommand(HEIST_COMMAND_ID)) {
+        systemCommandManager.registerSystemCommand(heistCommand);
     }
 }
 
 function unregisterHeistCommand() {
-    commandManager.unregisterSystemCommand(HEIST_COMMAND_ID);
+    systemCommandManager.unregisterSystemCommand(HEIST_COMMAND_ID);
 }
 
 function clearCooldown() {

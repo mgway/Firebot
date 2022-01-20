@@ -2,7 +2,7 @@
 
 const util = require("../../../utility");
 const twitchChat = require("../../../chat/twitch-chat");
-const commandManager = require("../../../chat/commands/CommandManager");
+const systemCommandManager = require("../../../chat/commands/system-command-manager");
 const gameManager = require("../../game-manager");
 const currencyDatabase = require("../../../database/currencyDatabase");
 const customRolesManager = require("../../../roles/custom-roles-manager");
@@ -233,13 +233,13 @@ const spinCommand = {
 };
 
 function registerSpinCommand() {
-    if (!commandManager.hasSystemCommand(SPIN_COMMAND_ID)) {
-        commandManager.registerSystemCommand(spinCommand);
+    if (!systemCommandManager.hasSystemCommand(SPIN_COMMAND_ID)) {
+        systemCommandManager.registerSystemCommand(spinCommand);
     }
 }
 
 function unregisterSpinCommand() {
-    commandManager.unregisterSystemCommand(SPIN_COMMAND_ID);
+    systemCommandManager.unregisterSystemCommand(SPIN_COMMAND_ID);
 }
 
 function purgeCaches() {

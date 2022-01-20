@@ -2,9 +2,9 @@
 const moment = require("moment");
 const gameManager = require("../../game-manager");
 const twitchChat = require("../../../chat/twitch-chat");
-const commandManager = require("../../../chat/commands/CommandManager");
 const currencyDatabase = require("../../../database/currencyDatabase");
 const util = require("../../../utility");
+const systemCommandManager = require("../../../chat/commands/system-command-manager");
 
 /**
  * @typedef HeistUser
@@ -32,7 +32,7 @@ function triggerCooldown() {
     const expireTime = moment().add(cooldownMins, 'minutes');
     exports.cooldownExpireTime = expireTime;
 
-    const trigger = commandManager.getSystemCommandTrigger("firebot:heist");
+    const trigger = systemCommandManager.getSystemCommandTrigger("firebot:heist");
     const cooldownOverMessage = heistSettings.settings.generalMessages.cooldownOver
         .replace("{command}", trigger ? trigger : '!heist');
 

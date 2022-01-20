@@ -1,6 +1,6 @@
 "use strict";
 
-const commandManager = require("./CommandManager");
+const systemCommandManager = require("./system-command-manager");
 
 exports.loadCommands = () => {
     // get command definitions
@@ -16,15 +16,15 @@ exports.loadCommands = () => {
     const spamRaidProtection = require('./builtin/spam-raid-protection');
 
     // register them
-    commandManager.registerSystemCommand(commandList);
-    commandManager.registerSystemCommand(commandManagement);
-    commandManager.registerSystemCommand(uptime);
-    commandManager.registerSystemCommand(followage);
-    commandManager.registerSystemCommand(quotesManagement);
-    commandManager.registerSystemCommand(steam);
-    commandManager.registerSystemCommand(customRoleManagement);
-    commandManager.registerSystemCommand(marker);
-    commandManager.registerSystemCommand(spamRaidProtection);
+    systemCommandManager.registerSystemCommand(commandList);
+    systemCommandManager.registerSystemCommand(commandManagement);
+    systemCommandManager.registerSystemCommand(uptime);
+    systemCommandManager.registerSystemCommand(followage);
+    systemCommandManager.registerSystemCommand(quotesManagement);
+    systemCommandManager.registerSystemCommand(steam);
+    systemCommandManager.registerSystemCommand(customRoleManagement);
+    systemCommandManager.registerSystemCommand(marker);
+    systemCommandManager.registerSystemCommand(spamRaidProtection);
 
     currencyManager.createAllCurrencyCommands();
 };

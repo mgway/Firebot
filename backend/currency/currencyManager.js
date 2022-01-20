@@ -3,7 +3,7 @@
 const { ipcMain } = require("electron");
 const logger = require("../logwrapper");
 const currencyDatabase = require("../database/currencyDatabase");
-const CommandManager = require("../chat/commands/CommandManager");
+const systemCommandManager = require("../chat/commands/system-command-manager");
 const twitchChat = require('../chat/twitch-chat');
 const moment = require("moment");
 const connectionManager = require("../common/connection-manager");
@@ -465,18 +465,18 @@ function refreshCurrencyCommands(action = false, currency = false) {
     // Decide what we want to do based on the action that was passed to us.
     switch (action) {
     case "update":
-        CommandManager.unregisterSystemCommand("firebot:currency:" + currency.id);
-        CommandManager.registerSystemCommand(
+        systemCommandManager.unregisterSystemCommand("firebot:currency:" + currency.id);
+        systemCommandManager.registerSystemCommand(
             createCurrencyCommandDefinition(currency)
         );
         break;
     case "delete":
         // Delete the system command for this currency.
-        CommandManager.unregisterSystemCommand("firebot:currency:" + currency.id);
+        systemCommandManager.unregisterSystemCommand("firebot:currency:" + currency.id);
         break;
     case "create":
         // Build a new system command def and register it.
-        CommandManager.registerSystemCommand(
+        systemCommandManager.registerSystemCommand(
             createCurrencyCommandDefinition(currency)
         );
         break;

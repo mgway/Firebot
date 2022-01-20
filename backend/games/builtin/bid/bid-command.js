@@ -2,7 +2,7 @@
 
 const util = require("../../../utility");
 const twitchChat = require("../../../chat/twitch-chat");
-const commandManager = require("../../../chat/commands/CommandManager");
+const systemCommandManager = require("../../../chat/commands/system-command-manager");
 const gameManager = require("../../game-manager");
 const currencyDatabase = require("../../../database/currencyDatabase");
 const moment = require("moment");
@@ -231,13 +231,13 @@ const bidCommand = {
 };
 
 function registerBidCommand() {
-    if (!commandManager.hasSystemCommand(BID_COMMAND_ID)) {
-        commandManager.registerSystemCommand(bidCommand);
+    if (!systemCommandManager.hasSystemCommand(BID_COMMAND_ID)) {
+        systemCommandManager.registerSystemCommand(bidCommand);
     }
 }
 
 function unregisterBidCommand() {
-    commandManager.unregisterSystemCommand(BID_COMMAND_ID);
+    systemCommandManager.unregisterSystemCommand(BID_COMMAND_ID);
 }
 
 function setNewHighBidder(username, amount) {

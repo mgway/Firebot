@@ -14,7 +14,6 @@ const DEFAULT_RESTRICTION_MESSAGE = "Sorry, you cannot use this command because:
 
 // commandaccess
 const commandManager = require("./CommandManager");
-const customCommandManager = require("./custom-command-manager");
 
 // custom command executor
 const commandExecutor = require("./command-executor");
@@ -509,7 +508,7 @@ async function handleChatMessage(firebotChatMessage) {
 }
 
 function triggerCustomCommand(id, isManual = true) {
-    let command = customCommandManager.getItem(id);
+    let command = commandManager.getCustomCommandById(id);
     if (command) {
         console.log("firing command manually", command);
         let commandSender = accountAccess.getAccounts().streamer.username,
@@ -533,7 +532,7 @@ function runSystemCommandFromEffect(id, trigger, args) {
 }
 
 function runCustomCommandFromEffect(id, trigger, args) {
-    let command = customCommandManager.getItem(id);
+    let command = commandManager.getCustomCommandById(id);
     runCommandFromEffect(command, trigger, args);
 }
 

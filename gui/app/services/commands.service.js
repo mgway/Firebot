@@ -34,7 +34,7 @@
             };
 
             // Refresh commands cache
-            service.refreshCommands = function() {
+            service.refreshCommands = async function() {
                 let commandsDb = getCommandsDb();
 
                 let cmdData;
@@ -50,9 +50,7 @@
                     service.commandsCache.customCommands = Object.values(cmdData.customCommands);
                 }
 
-                service.commandsCache.systemCommands = listenerService.fireEventSync(
-                    "getAllSystemCommandDefinitions"
-                );
+                service.commandsCache.systemCommands = await backendCommunicator.fireEventAsync("getSystemCommands");
 
                 // Refresh the command cache.
                 ipcRenderer.send("refreshCommandCache");
@@ -84,10 +82,7 @@
             };
 
             service.saveSystemCommandOverride = function(command) {
-                listenerService.fireEvent(
-                    "saveSystemCommandOverride",
-                    JSON.parse(angular.toJson(command))
-                );
+                backendCommunicator.fireEventAsync("saveSystemCommand", JSON.parse(angular.toJson(command)));
 
                 let index = service.commandsCache.systemCommands.findIndex(
                     c => c.id === command.id

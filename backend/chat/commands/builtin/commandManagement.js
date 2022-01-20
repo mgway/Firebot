@@ -142,10 +142,9 @@ const commandManagement = {
     onTriggerEvent: event => {
         return new Promise(async (resolve) => {
             const commandManager = require("../CommandManager");
-            const customCommandManager = require("../custom-command-manager");
             const chat = require("../../twitch-chat");
 
-            let activeCustomCommands = customCommandManager.getAllItems().filter(c => c.active);
+            let activeCustomCommands = commandManager.getAllCustomCommands().filter(c => c.active);
 
             let triggeredArg = event.userCommand.triggeredArg;
 
@@ -214,7 +213,7 @@ const commandManagement = {
                     }
                 };
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Added command '${trigger}'!`
@@ -258,7 +257,7 @@ const commandManagement = {
                     command.effects.list.push(chatEffect);
                 }
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated '${trigger}' with response: ${remainingData}`
@@ -290,7 +289,7 @@ const commandManagement = {
 
                 command.count = parseInt(newCount);
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated usage count for '${trigger}' to: ${newCount}`
@@ -317,7 +316,7 @@ const commandManagement = {
 
                 command.description = remainingData;
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated description for '${trigger}' to: ${remainingData}`
@@ -359,7 +358,7 @@ const commandManagement = {
                     global: globalCooldown
                 };
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated '${trigger}' with cooldowns: ${userCooldown}s (user), ${globalCooldown}s (global)`
@@ -405,7 +404,7 @@ const commandManagement = {
 
                 command.restrictionData = { restrictions: restrictions };
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(`Updated '${trigger}' restrictions to: ${remainingData}`);
 
@@ -421,14 +420,14 @@ const commandManagement = {
                     return resolve();
                 }
 
-                customCommandManager.deleteItemByTrigger(trigger);
+                commandManager.deleteItemByTrigger(trigger);
 
                 chat.sendChatMessage(`Successfully removed command '${trigger}'.`);
                 break;
             }
             case "disable":
             case "enable": {
-                const command = customCommandManager.getAllItems().find(c => c.trigger === trigger);
+                const command = commandManager.getAllCustomCommands().find(c => c.trigger === trigger);
 
                 if (command == null) {
                     chat.sendChatMessage(
@@ -448,7 +447,7 @@ const commandManagement = {
 
                 command.active = newActiveStatus;
 
-                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
 
                 frontendCommunicator.send("custom-commands-updated");
 

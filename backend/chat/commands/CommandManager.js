@@ -1,140 +1,42 @@
 "use strict";
 
-const { ipcMain } = require("electron");
-const logger = require("../../logwrapper");
 const EventEmitter = require("events");
-const commandAccess = require("./command-access");
 const customCommandManager = require("./custom-command-manager");
+const systemCommandManager = require("./system-command-manager");
 
 class CommandManager extends EventEmitter {
     constructor() {
         super();
 
-        this._registeredSysCommands = [];
-        this._sysCommandOverrides = commandAccess.getSystemCommandOverrides();
-
-        if (this._sysCommandOverrides == null) {
-            this._sysCommandOverrides = {};
-        }
-
         this.CommandType = { SYSTEM: "system", CUSTOM: "custom" };
     }
 
     registerSystemCommand(command) {
-        // TODO: validate command
-
-        // Steps:
-        // Load saved info (ie active, trigger override, etc)
-        // Apply saved info
-
-        command.definition.type = this.CommandType.SYSTEM;
-
-        // default base cmd to active
-        if (command.definition.active == null) {
-            command.definition.active = true;
-        }
-
-        // default sub cmds to active
-        if (command.definition.subCommands &&
-            command.definition.subCommands.length > 0) {
-
-            command.definition.subCommands.forEach(sc => {
-                if (sc.active == null) {
-                    sc.active = true;
-                }
-            });
-
-        }
-
-        this._registeredSysCommands.push(command);
-
-        logger.debug(`Registered Sys Command ${command.definition.id}`);
-
-        this.emit("systemCommandRegistered", command);
+        systemCommandManager.registerSystemCommand(command);
     }
 
-    /**
-     * Unregisters a system command.
-     * @param {*} id
-     */
     unregisterSystemCommand(id) {
-        this._registeredSysCommands = this._registeredSysCommands.filter(c => c.definition.id !== id);
-        this.emit("systemCommandUnRegistered", id);
-        logger.debug(`Unregistered Sys Command ${id}`);
-    }
-
-    getSystemCommandById(id) {
-        return this._registeredSysCommands.find(c => c.definition.id === id);
-    }
-
-    getSystemCommandTrigger(id) {
-        const sysCommandsWithOverrides = this.getAllSystemCommandDefinitions();
-        const command = sysCommandsWithOverrides.find(sc => sc.id === id);
-        return command ? command.trigger : null;
+        systemCommandManager.unregisterSystemCommand(id);
     }
 
     hasSystemCommand(id) {
-        return this._registeredSysCommands.some(c => c.definition.id === id);
+        systemCommandManager.hasSystemCommand(id);
+    }
+
+    getSystemCommandById(id) {
+        return systemCommandManager.getSystemCommandDefinitionById(id);
+    }
+
+    getSystemCommandTrigger(id) {
+        return systemCommandManager.getSystemCommandTrigger(id) || null;
     }
 
     getSystemCommands() {
-        return this._registeredSysCommands.map(c => {
-            c.definition.type = "system";
-            return c;
-        });
+        return systemCommandManager.getSystemCommandDefinitions();
     }
 
     getAllSystemCommandDefinitions() {
-        let cmdDefs = this._registeredSysCommands.map(c => {
-            let override = this._sysCommandOverrides[c.definition.id];
-            if (override != null) {
-                if (c.definition.options) {
-                    override.options = Object.assign(c.definition.options, override.options);
-
-                    //remove now nonexistent options
-                    for (let overrideOptionName of Object.keys(override.options)) {
-                        if (c.definition.options[overrideOptionName] == null) {
-                            delete override.options[overrideOptionName];
-                        }
-                    }
-                } else {
-                    override.options = null;
-                }
-
-                if (c.definition.baseCommandDescription) {
-                    override.baseCommandDescription = c.definition.baseCommandDescription;
-                }
-
-                if (c.definition.subCommands) {
-                    if (!override.subCommands) {
-                        override.subCommands = c.definition.subCommands;
-                    } else {
-                        //add new args
-                        for (let subCommand of c.definition.subCommands) {
-                            if (!override.subCommands.some(sc => sc.arg === subCommand.arg)) {
-                                override.subCommands.push(subCommand);
-                            }
-                        }
-
-                        //remove now nonexistent args
-                        for (let i = 0; i < override.subCommands.length; i++) {
-                            let overrideSubCommand = override.subCommands[i];
-                            if (!c.definition.subCommands.some(sc => sc.arg === overrideSubCommand.arg)) {
-                                override.subCommands.splice(i, 1);
-                            }
-                        }
-                    }
-
-                } else {
-                    override.subCommands = [];
-                }
-
-                return override;
-            }
-            return c.definition;
-        });
-
-        return cmdDefs;
+        return systemCommandManager.getAllItems();
     }
 
     getCustomCommandById(id) {
@@ -145,10 +47,10 @@ class CommandManager extends EventEmitter {
     }
 
     getAllActiveCommands() {
-        return this.getAllSystemCommandDefinitions()
-            .filter(c => c.active)
-            .concat(customCommandManager.getAllItems()
-                .filter(c => c.active));
+        return [
+            ...systemCommandManager.getAllItems(),
+            ...customCommandManager.getAllItems()
+        ].filter(c => c.active);
     }
 
     triggerIsTaken(trigger) {
@@ -158,29 +60,25 @@ class CommandManager extends EventEmitter {
 
     // this updates the trigger even if the user has saved an override of the default trigger
     forceUpdateSysCommandTrigger(id, newTrigger) {
-        let override = this._sysCommandOverrides[id];
+        const override = systemCommandManager.getItem(id);
         if (override != null) {
             override.trigger = newTrigger;
-            this.saveSystemCommandOverride(override);
+            systemCommandManager.saveItem(override);
         }
-
-        let defaultCmd = this._registeredSysCommands.find(
-            c => c.definition.id === id
-        );
-        if (defaultCmd != null) {
-            defaultCmd.definition.trigger = newTrigger;
+        const commandDefinition = systemCommandManager.getSystemCommandDefinitionById(id);
+        if (commandDefinition != null) {
+            commandDefinition.definition.trigger = newTrigger;
+            systemCommandManager.saveSystemCommandDefinition(commandDefinition);
         }
-
         renderWindow.webContents.send("systemCommandsUpdated");
     }
 
     //saves a system command override
     saveSystemCommandOverride(sysCommand) {
-        this._sysCommandOverrides[sysCommand.id] = sysCommand;
-        commandAccess.saveSystemCommandOverride(sysCommand);
+        systemCommandManager.saveItem(sysCommand);
     }
 
-    saveCustomCommand(command, user, isNew = true) {
+    saveCustomCommand(command, user) {
         customCommandManager.saveItem(command, user);
     }
     removeCustomCommandByTrigger(trigger) {
@@ -189,32 +87,5 @@ class CommandManager extends EventEmitter {
 }
 
 const manager = new CommandManager();
-
-ipcMain.on("getAllSystemCommands", event => {
-    logger.info("got 'get all cmds' request");
-    event.returnValue = manager.getSystemCommands();
-});
-
-ipcMain.on("getAllSystemCommandDefinitions", event => {
-    logger.info("got 'get all cmd defs' request");
-    event.returnValue = manager.getAllSystemCommandDefinitions();
-});
-
-ipcMain.on("getSystemCommand", (event, commandId) => {
-    logger.info("got 'get cmd' request", commandId);
-    event.returnValue = manager.getSystemCommandById(commandId);
-});
-
-ipcMain.on("saveSystemCommandOverride", (event, sysCommand) => {
-    logger.info("got 'save sys cmd' request");
-    manager.saveSystemCommandOverride(sysCommand);
-});
-
-ipcMain.on("removeSystemCommandOverride", (event, id) => {
-    logger.info("got 'remove sys cmd' request");
-    delete manager._sysCommandOverrides[id];
-    commandAccess.removeSystemCommandOverride(id);
-    renderWindow.webContents.send("systemCommandsUpdated");
-});
 
 module.exports = manager;

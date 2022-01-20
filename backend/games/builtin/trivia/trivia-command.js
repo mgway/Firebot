@@ -3,7 +3,7 @@
 const util = require("../../../utility");
 const twitchChat = require("../../../chat/twitch-chat");
 const twitchListeners = require("../../../chat/chat-listeners/twitch-chat-listeners");
-const commandManager = require("../../../chat/commands/CommandManager");
+const systemCommandManager = require("../../../chat/commands/system-command-manager");
 const gameManager = require("../../game-manager");
 const currencyDatabase = require("../../../database/currencyDatabase");
 const customRolesManager = require("../../../roles/custom-roles-manager");
@@ -263,13 +263,13 @@ const triviaCommand = {
 };
 
 function registerTriviaCommand() {
-    if (!commandManager.hasSystemCommand(TRIVIA_COMMAND_ID)) {
-        commandManager.registerSystemCommand(triviaCommand);
+    if (!systemCommandManager.hasSystemCommand(TRIVIA_COMMAND_ID)) {
+        systemCommandManager.registerSystemCommand(triviaCommand);
     }
 }
 
 function unregisterTriviaCommand() {
-    commandManager.unregisterSystemCommand(TRIVIA_COMMAND_ID);
+    systemCommandManager.unregisterSystemCommand(TRIVIA_COMMAND_ID);
 }
 
 function purgeCaches() {

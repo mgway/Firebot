@@ -1,7 +1,7 @@
 "use strict";
 
 const logger = require("../../logwrapper");
-const commandManager = require("../commands/CommandManager");
+const systemCommandManager = require("../commands/system-command-manager");
 const frontendCommunicator = require("../../common/frontend-communicator");
 
 const PERMIT_COMMAND_ID = "firebot:moderation:url:permit";
@@ -89,13 +89,13 @@ function hasTemporaryPermission(username) {
 }
 
 function registerPermitCommand() {
-    if (!commandManager.hasSystemCommand(PERMIT_COMMAND_ID)) {
-        commandManager.registerSystemCommand(permitCommand);
+    if (!systemCommandManager.hasSystemCommand(PERMIT_COMMAND_ID)) {
+        systemCommandManager.registerSystemCommand(permitCommand);
     }
 }
 
 function unregisterPermitCommand() {
-    commandManager.unregisterSystemCommand(PERMIT_COMMAND_ID);
+    systemCommandManager.unregisterSystemCommand(PERMIT_COMMAND_ID);
 }
 
 frontendCommunicator.on("registerPermitCommand", () => {
