@@ -246,8 +246,8 @@
                     }
                 }
 
-                if (commandsService.triggerExists($ctrl.command.trigger, $ctrl.command.id)) {
-                    ngToast.create("A custom command with this trigger already exists.");
+                if (commandsService.triggerExists($ctrl.command.trigger)) {
+                    ngToast.create("A command with this trigger already exists.");
                     return;
                 }
 

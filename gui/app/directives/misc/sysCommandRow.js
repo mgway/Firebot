@@ -162,9 +162,9 @@
                     closeCallback: resp => {
                         let action = resp.action;
                         if (action === "save") {
-                            commandsService.saveSystemCommandOverride(resp.command);
+                            commandsService.saveSystemCommand(resp.command);
                         } else if (action === "reset") {
-                            backendCommunicator.fireEvent("deleteSystemCommand", cmd.id);
+                            commandsService.deleteSystemCommand(cmd.id);
                         }
                     }
                 });
@@ -172,7 +172,7 @@
 
             $ctrl.toggleCommandActiveState = function() {
                 $ctrl.command.active = !$ctrl.command.active;
-                commandsService.saveSystemCommandOverride($ctrl.command);
+                commandsService.saveSystemCommand($ctrl.command);
             };
 
             $ctrl.sysCommandMenuOptions = [
@@ -186,7 +186,7 @@
                     html: `<a href ><i class="far fa-toggle-off" style="margin-right: 10px;"></i> Toggle Enabled</a>`,
                     click: function () {
                         $ctrl.command.active = !$ctrl.command.active;
-                        commandsService.saveSystemCommandOverride($ctrl.command);
+                        commandsService.saveSystemCommand($ctrl.command);
                     }
                 }
             ];

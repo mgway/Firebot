@@ -1,22 +1,14 @@
 "use strict";
 (function() {
-    //This manages command data
-    const profileManager = require("../../backend/common/profile-manager.js");
-
     angular
         .module("firebotApp")
         .factory("commandsService", function(
-            logger,
             connectionService,
-            listenerService,
             backendCommunicator
         ) {
             let service = {};
 
             service.customCommandSearch = "";
-
-            let getCommandsDb = () =>
-                profileManager.getJsonDbInProfile("/chat/commands");
 
             // in memory commands storage
             service.commandsCache = {
@@ -33,31 +25,37 @@
                 }
             };
 
-            // Refresh commands cache
-            service.refreshCommands = async function() {
-                let commandsDb = getCommandsDb();
-
-                let cmdData;
-                try {
-                    cmdData = commandsDb.getData("/");
-                } catch (err) {
-                    logger.warn("error getting command data", err);
-                    return;
+            const updateSystemCommands = (command) => {
+                const index = service.commandsCache.systemCommands.findIndex(c => c.id === command.id);
+                if (index > -1) {
+                    service.commandsCache.systemCommands[index] = command;
+                } else {
+                    service.commandsCache.systemCommands.push(command);
                 }
-
-                if (cmdData.customCommands) {
-                    logger.debug("loading custom commands: " + cmdData.customCommands);
-                    service.commandsCache.customCommands = Object.values(cmdData.customCommands);
-                }
-
-                service.commandsCache.systemCommands = await backendCommunicator.fireEventAsync("getSystemCommands");
-
-                // Refresh the command cache.
-                ipcRenderer.send("refreshCommandCache");
             };
 
-            backendCommunicator.on("custom-commands-updated", () => {
-                service.refreshCommands();
+            service.loadCommands = async () => {
+                const customCommands = await backendCommunicator.fireEventAsync("getCustomCommands");
+                if (customCommands) {
+                    service.commandsCache.customCommands = customCommands;
+                }
+
+                const systemCommands = await backendCommunicator.fireEventAsync("getSystemCommands");
+                if (systemCommands) {
+                    service.commandsCache.systemCommands = systemCommands;
+                }
+            };
+
+            backendCommunicator.on("all-custom-commands", customCommands => {
+                if (customCommands != null) {
+                    service.commandsCache.customCommands = customCommands;
+                }
+            });
+
+            backendCommunicator.on("all-system-commands", systemCommands => {
+                if (systemCommands != null) {
+                    service.commandsCache.systemCommands = systemCommands;
+                }
             });
 
             service.getSystemCommands = () => service.commandsCache.systemCommands;
@@ -69,7 +67,7 @@
                     user = connectionService.accounts.streamer.username;
                 }
 
-                const savedCommand = await backendCommunicator.fireEventAsync("saveCustomCommand", {customCommand, user});
+                const savedCommand = await backendCommunicator.fireEventAsync("saveCustomCommand", {customCommand: JSON.parse(angular.toJson(customCommand)), user});
 
                 if (savedCommand != null) {
                     updateCustomCommands(savedCommand);
@@ -81,33 +79,23 @@
                 backendCommunicator.fireEvent("saveAllCustomCommands", commands);
             };
 
-            service.saveSystemCommandOverride = function(command) {
-                backendCommunicator.fireEventAsync("saveSystemCommand", JSON.parse(angular.toJson(command)));
+            service.saveSystemCommand = async (command) => {
+                const savedCommand = await backendCommunicator.fireEventAsync("saveSystemCommand", JSON.parse(angular.toJson(command)));
 
-                let index = service.commandsCache.systemCommands.findIndex(
-                    c => c.id === command.id
-                );
-
-                service.commandsCache.systemCommands[index] = command;
+                if (savedCommand != null) {
+                    updateSystemCommands(savedCommand);
+                }
             };
 
-            service.triggerExists = function(trigger, id = null) {
+            service.triggerExists = function(trigger) {
                 if (trigger == null) {
                     return false;
                 }
 
-                trigger = trigger != null ? trigger.toLowerCase() : "";
-
-                let foundDuplicateCustomCmdTrigger = service.commandsCache.customCommands.some(
-                    command =>
-                        command.id !== id && command.trigger && command.trigger.toLowerCase() === trigger
-                );
-
-                let foundDuplicateSystemCmdTrigger = service.commandsCache.systemCommands.some(
-                    command => command.active && command.trigger && command.trigger.toLowerCase() === trigger
-                );
-
-                return foundDuplicateCustomCmdTrigger || foundDuplicateSystemCmdTrigger;
+                return [
+                    ...service.commandsCache.customCommands,
+                    ...service.commandsCache.systemCommands
+                ].some(c => c.trigger.toLowerCase() === trigger.toLowerCase());
             };
 
             service.deleteCustomCommand = (commandId) => {
@@ -115,24 +103,9 @@
                 backendCommunicator.fireEvent("deleteCustomCommand", commandId);
             };
 
-            listenerService.registerListener(
-                {
-                    type: listenerService.ListenerType.SYS_CMDS_UPDATED
-                },
-                () => {
-                    service.refreshCommands();
-                }
-            );
-
-            ipcRenderer.on("commandCountUpdate", function(event, data) {
-                let command = service
-                    .getCustomCommands()
-                    .find(c => c.id === data.commandId);
-                if (command != null) {
-                    command.count = data.count;
-                    service.saveCustomCommand(command);
-                }
-            });
+            service.deleteSystemCommand = (commandId) => {
+                backendCommunicator.fireEvent("deleteSystemCommand", commandId);
+            };
 
 
             return service;

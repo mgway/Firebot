@@ -80,6 +80,7 @@ const triviaCommand = {
     definition: {
         id: TRIVIA_COMMAND_ID,
         name: "Trivia",
+        type: "system",
         active: true,
         trigger: "!trivia",
         description: "Allows viewers to play trivia",

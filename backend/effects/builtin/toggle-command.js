@@ -1,7 +1,7 @@
 "use strict";
 
-const frontendCommunicator = require("../../common/frontend-communicator");
-const commandManager = require("../../chat/commands/command-manager");
+const customCommandManager = require("../../chat/commands/custom-command-manager");
+const systemCommandManager = require("../../chat/commands/system-command-manager");
 const { EffectCategory } = require('../../../shared/effect-constants');
 
 const chat = {
@@ -70,8 +70,8 @@ const chat = {
         const { commandId, commandType, toggleType } = event.effect;
 
         if (commandType === "system") {
-            const systemCommand = commandManager
-                .getSystemCommands().find(c => c.id === commandId);
+            const systemCommand = systemCommandManager
+                .getSystemCommandDefinitions().find(c => c.id === commandId);
 
             if (systemCommand == null) {
                 // command doesnt exist anymore
@@ -80,11 +80,10 @@ const chat = {
 
             systemCommand.active = toggleType === "toggle" ? !systemCommand.active : toggleType === "enable";
 
-            commandManager.saveSystemCommandOverride(systemCommand);
-
-            frontendCommunicator.send("systemCommandsUpdated");
+            systemCommandManager.saveItem(systemCommand);
+            systemCommandManager.triggerUiRefresh();
         } else if (commandType === "custom") {
-            const customCommand = commandManager.getCustomCommandById(commandId);
+            const customCommand = customCommandManager.getItem(commandId);
 
             if (customCommand == null) {
                 // command doesnt exist anymore
@@ -93,9 +92,8 @@ const chat = {
 
             customCommand.active = toggleType === "toggle" ? !customCommand.active : toggleType === "enable";
 
-            commandManager.saveCustomCommand(customCommand, "System");
-
-            frontendCommunicator.send("custom-commands-updated");
+            customCommandManager.saveItem(customCommand, "System");
+            customCommandManager.triggerUiRefresh();
         }
     }
 };

@@ -11,6 +11,7 @@ const model = {
         id: "firebot:create-marker",
         name: "Create Stream Marker",
         active: true,
+        type: "system",
         trigger: "!marker",
         usage: "[marker name]",
         description: "Create a stream marker.",

@@ -129,7 +129,7 @@
         viewerRolesService.loadCustomRoles();
 
         //load commands
-        commandsService.refreshCommands();
+        commandsService.loadCommands();
 
         timerService.loadTimers();
 

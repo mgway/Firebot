@@ -13,6 +13,7 @@ const followage = {
         id: "firebot:followage",
         name: "Follow Age",
         active: true,
+        type: "system",
         trigger: "!followage",
         description: "Displays how long the user has been following the channel.",
         autoDeleteTrigger: false,

@@ -8,6 +8,7 @@ const model = {
         id: "firebot:role-management",
         name: "Custom Role Management",
         active: true,
+        type: "system",
         trigger: "!role",
         description: "Allows management of viewer's custom roles from chat.",
         autoDeleteTrigger: false,

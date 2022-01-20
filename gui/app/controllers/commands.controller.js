@@ -14,9 +14,6 @@
             sortTagsService,
             effectQueuesService
         ) {
-            // Cache commands on app load.
-            commandsService.refreshCommands();
-
             $scope.activeCmdTab = 0;
 
             $scope.commandsService = commandsService;
@@ -105,7 +102,6 @@
                 }
 
                 commandsService.saveCustomCommand(copiedCommand);
-                commandsService.refreshCommands();
             };
 
             $scope.openAddOrEditCustomCommandModal = function(command) {
@@ -156,7 +152,6 @@
                 }
 
                 commandsService.saveCustomCommand(command);
-                commandsService.refreshCommands();
             };
 
             $scope.clearEffectQueue = (command) => {

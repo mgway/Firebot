@@ -10,6 +10,7 @@ const model = {
     definition: {
         id: "firebot:uptime",
         name: "Uptime",
+        type: "system",
         active: true,
         trigger: "!uptime",
         description: "Displays how long the stream has been live in chat.",

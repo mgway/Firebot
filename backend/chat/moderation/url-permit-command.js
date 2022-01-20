@@ -11,6 +11,7 @@ const permitCommand = {
     definition: {
         id: PERMIT_COMMAND_ID,
         name: "Permit",
+        type: "system",
         active: true,
         trigger: "!permit",
         usage: "[target]",

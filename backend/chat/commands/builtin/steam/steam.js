@@ -8,6 +8,7 @@ const steam = {
     definition: {
         id: "firebot:steam",
         name: "Steam Search",
+        type: "system",
         active: true,
         trigger: "!steam",
         usage: "[game name]",

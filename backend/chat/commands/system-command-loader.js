@@ -1,8 +1,8 @@
 "use strict";
 
-const systemCommandManager = require("./system-command-manager");
-
 exports.loadCommands = () => {
+    const systemCommandManager = require("./system-command-manager");
+
     // get command definitions
     const commandList = require("./builtin/commandList");
     const commandManagement = require("./builtin/commandManagement");

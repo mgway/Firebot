@@ -24,7 +24,7 @@ class CommandManager extends EventEmitter {
     }
 
     getSystemCommandById(id) {
-        return systemCommandManager.getSystemCommandDefinitionById(id);
+        return systemCommandManager.getSystemCommandById(id);
     }
 
     getSystemCommandTrigger(id) {
@@ -32,11 +32,11 @@ class CommandManager extends EventEmitter {
     }
 
     getSystemCommands() {
-        return systemCommandManager.getSystemCommandDefinitions();
+        return systemCommandManager.getAllItems();
     }
 
     getAllSystemCommandDefinitions() {
-        return systemCommandManager.getAllItems();
+        return systemCommandManager.getSystemCommandDefinitions();
     }
 
     getCustomCommandById(id) {
@@ -48,14 +48,14 @@ class CommandManager extends EventEmitter {
 
     getAllActiveCommands() {
         return [
-            ...systemCommandManager.getAllItems(),
+            ...systemCommandManager.getSystemCommandDefinitions(),
             ...customCommandManager.getAllItems()
         ].filter(c => c.active);
     }
 
     triggerIsTaken(trigger) {
         return this.getAllActiveCommands()
-            .find(c => c.trigger.toLowerCase() === trigger.toLowerCase());
+            .some(c => c.trigger.toLowerCase() === trigger.toLowerCase());
     }
 
     // this updates the trigger even if the user has saved an override of the default trigger
@@ -68,7 +68,7 @@ class CommandManager extends EventEmitter {
         const commandDefinition = systemCommandManager.getSystemCommandDefinitionById(id);
         if (commandDefinition != null) {
             commandDefinition.definition.trigger = newTrigger;
-            systemCommandManager.saveSystemCommandDefinition(commandDefinition);
+            systemCommandManager.saveDefaultSystemCommandDefinition(commandDefinition);
         }
         renderWindow.webContents.send("systemCommandsUpdated");
     }

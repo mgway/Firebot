@@ -2,7 +2,6 @@
 
 const uuidv1 = require("uuid/v1");
 const util = require("../../../utility");
-const frontendCommunicator = require("../../../common/frontend-communicator");
 
 function seperateTriggerFromArgs(args) {
     let trigger, remainingData = "";
@@ -64,6 +63,7 @@ const commandManagement = {
     definition: {
         id: "firebot:commandmanagement",
         name: "Command Management",
+        type: "system",
         active: true,
         trigger: "!command",
         description: "Allows custom command management via chat.",
@@ -143,8 +143,9 @@ const commandManagement = {
         return new Promise(async (resolve) => {
             const commandManager = require("../command-manager");
             const chat = require("../../twitch-chat");
+            const customCommandManager = require("../custom-command-manager");
 
-            let activeCustomCommands = commandManager.getAllCustomCommands().filter(c => c.active);
+            let activeCustomCommands = customCommandManager.getAllItems().filter(c => c.active);
 
             let triggeredArg = event.userCommand.triggeredArg;
 
@@ -213,7 +214,7 @@ const commandManagement = {
                     }
                 };
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Added command '${trigger}'!`
@@ -257,7 +258,7 @@ const commandManagement = {
                     command.effects.list.push(chatEffect);
                 }
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated '${trigger}' with response: ${remainingData}`
@@ -289,7 +290,7 @@ const commandManagement = {
 
                 command.count = parseInt(newCount);
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated usage count for '${trigger}' to: ${newCount}`
@@ -316,7 +317,7 @@ const commandManagement = {
 
                 command.description = remainingData;
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated description for '${trigger}' to: ${remainingData}`
@@ -358,7 +359,7 @@ const commandManagement = {
                     global: globalCooldown
                 };
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(
                     `Updated '${trigger}' with cooldowns: ${userCooldown}s (user), ${globalCooldown}s (global)`
@@ -404,7 +405,7 @@ const commandManagement = {
 
                 command.restrictionData = { restrictions: restrictions };
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
 
                 chat.sendChatMessage(`Updated '${trigger}' restrictions to: ${remainingData}`);
 
@@ -427,7 +428,7 @@ const commandManagement = {
             }
             case "disable":
             case "enable": {
-                const command = commandManager.getAllCustomCommands().find(c => c.trigger === trigger);
+                const command = customCommandManager.getAllItems().find(c => c.trigger === trigger);
 
                 if (command == null) {
                     chat.sendChatMessage(
@@ -447,9 +448,8 @@ const commandManagement = {
 
                 command.active = newActiveStatus;
 
-                commandManager.saveCustomCommand(command, event.userCommand.commandSender);
-
-                frontendCommunicator.send("custom-commands-updated");
+                customCommandManager.saveItem(command, event.userCommand.commandSender);
+                customCommandManager.triggerUiRefresh();
 
                 chat.sendChatMessage(
                     `${util.capitalize(triggeredArg)}d "${trigger}"`

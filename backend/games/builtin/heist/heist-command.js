@@ -19,6 +19,7 @@ const heistCommand = {
     definition: {
         id: HEIST_COMMAND_ID,
         name: "Heist",
+        type: "system",
         active: true,
         trigger: "!heist",
         description: "Allows viewers to play the Heist game.",

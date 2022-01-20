@@ -2,7 +2,7 @@
 
 const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
-const logger = require("../logwrapper");
+const logger = require("../../logwrapper");
 const systemCommandDefinitionLoader = require("./system-command-loader");
 
 /**
@@ -25,9 +25,14 @@ class SystemCommandManager extends JsonDbManager {
     constructor() {
         super("System Command", "/chat/commands", "/systemCommandOverrides");
 
-        this.systemCommandDefinitions = new Map();
+        this.allSystemCommands = {};
+        this.defaultCommandDefinitions = {};
+        this.commandEventDefinitions = {};
     }
 
+    /**
+     * @override
+     */
     loadItems() {
         // First load the overrides
         super.loadItems();
@@ -36,86 +41,118 @@ class SystemCommandManager extends JsonDbManager {
         systemCommandDefinitionLoader.loadCommands();
     }
 
-    registerSystemCommand(command) {
-        let override = { ...this.items[command.definition.id] };
+    /**
+     * @override
+     */
+    getAllItems() {
+        return Object.values(this.allSystemCommands);
+    }
 
+    saveItem(commandDefinition) {
+        super.saveItem(commandDefinition);
+        this.allSystemCommands[commandDefinition.id].definition = commandDefinition;
+
+        return commandDefinition;
+    }
+
+    deleteItem(commandId) {
+        super.deleteItem(commandId);
+
+        this.allSystemCommands[commandId].definition = this.defaultCommandDefinitions[commandId];
+        this.triggerUiRefresh();
+    }
+
+    registerSystemCommand(command) {
+        const defaultDefinition = command.definition;
+        this.defaultCommandDefinitions[defaultDefinition.id] = defaultDefinition;
+
+        const override = this.items[defaultDefinition.id];
         if (override == null) {
-            this.items[command.definition.id] = command;
+            logger.debug(`Registered System Command ${defaultDefinition.id} without override`);
+            this.allSystemCommands[defaultDefinition.id] = command;
             return;
         }
 
         override.options = {
-            ...command.definition.options,
+            ...defaultDefinition.options,
             ...override.options
         };
 
-        if (!command.definition.subCommands || !command.definition.subCommands.length) {
+        if (!defaultDefinition.subCommands || !defaultDefinition.subCommands.length) {
             override.subCommands = [];
+        } else if (!override.subCommands || !override.subCommands.length) {
+            override.subCommands = defaultDefinition.subCommands;
         } else {
             override.subCommands = override.subCommands.map(osc => {
-                if (command.definition.subCommands.includes(osc)) {
+                if (defaultDefinition.subCommands.includes(osc)) {
                     return osc;
                 }
             });
 
-            override.subCommands = command.definition.subCommands.map(dsc => {
+            override.subCommands = defaultDefinition.subCommands.map(dsc => {
                 if (!override.subCommands.includes(dsc)) {
                     return dsc;
                 }
             });
         }
 
-        this.items[override.id] = {
-            ...command,
-            ...override
+        this.allSystemCommands[override.id] = {
+            definition: {
+                ...defaultDefinition,
+                ...override
+            },
+            onTriggerEvent: command.onTriggerEvent
         };
 
-        // Keep a collection of the command definitions for CommandManager.js
-        this.systemCommandDefinitions.set(command.id, command);
 
-        logger.debug(`Registered System Command ${command.override.id}`);
+        logger.debug(`Registered System Command ${defaultDefinition.id} with override`);
+        this.triggerUiRefresh();
     }
 
     unregisterSystemCommand(id) {
-        this.items = this.items.filter(c => c.id !== id);
+        delete this.allSystemCommands[id];
         logger.debug(`Unregistered System Command ${id}`);
+        this.triggerUiRefresh();
     }
 
     hasSystemCommand(id) {
-        return this.items.some(c => c.id === id);
+        return !!this.allSystemCommands[id];
     }
 
     getSystemCommandTrigger(id) {
-        return this.items[id].trigger || null;
+        return this.allSystemCommands[id].definition.trigger || null;
     }
 
-    getSystemCommandDefinitionById(id) {
-        return this.systemCommandDefinitions.get(id);
+    getSystemCommandById(id) {
+        return this.allSystemCommands[id];
     }
 
     getSystemCommandDefinitions() {
-        return Array.from(this.registeredSystemCommands.values());
+        return this.getAllItems().map(c => c.definition);
     }
 
-    saveSystemCommandDefinition(commandDefinition) {
-        this.systemCommandDefinitions.set(commandDefinition.definition.id, commandDefinition);
+    saveDefaultSystemCommandDefinition(commandDefinition) {
+        this.defaultCommandDefinitions[commandDefinition.id] = commandDefinition;
     }
 
     /**
      * @returns {void}
      */
     triggerUiRefresh() {
-        frontendCommunicator.send("all-system-commands", this.getAllItems());
+        frontendCommunicator.send("all-system-commands", this.getSystemCommandDefinitions());
     }
 }
 
 const systemCommandManager = new SystemCommandManager();
 
 frontendCommunicator.onAsync("getSystemCommands",
-    async () => systemCommandManager.getAllItems());
+    async () => systemCommandManager.getSystemCommandDefinitions());
 
 frontendCommunicator.onAsync("saveSystemCommand",
-    async (/** @type {SystemCommand} */ systemCommand) => systemCommandManager.saveItem(systemCommand));
+    async (/** @type {SystemCommand} */ systemCommand) => {
+        const savedCommand = systemCommandManager.saveItem(systemCommand);
+        return savedCommand.definition;
+    });
 
 frontendCommunicator.onAsync("saveAllSystemCommands",
     async (/** @type {SystemCommand[]} */ allSystemCommands) => systemCommandManager.saveAllItems(allSystemCommands));

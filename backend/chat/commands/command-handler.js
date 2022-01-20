@@ -16,6 +16,7 @@ const commandManager = require("./command-manager");
 
 // custom command executor
 const commandExecutor = require("./command-executor");
+const customCommandManager = require("./custom-command-manager");
 
 const cooldownCache = new NodeCache({ stdTTL: 1, checkperiod: 1 });
 
@@ -101,10 +102,8 @@ function updateCommandCount(command) {
         command.count = 0;
     }
     command.count++;
-    renderWindow.webContents.send("commandCountUpdate", {
-        commandId: command.id,
-        count: command.count
-    });
+    customCommandManager.saveItem(command);
+    customCommandManager.triggerUiRefresh();
 }
 
 function flushCooldownCache() {

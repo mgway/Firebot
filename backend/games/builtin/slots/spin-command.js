@@ -22,6 +22,7 @@ const spinCommand = {
     definition: {
         id: SPIN_COMMAND_ID,
         name: "Spin (Slots)",
+        type: "system",
         active: true,
         trigger: "!spin",
         description: "Allows viewers to play the Slots game.",

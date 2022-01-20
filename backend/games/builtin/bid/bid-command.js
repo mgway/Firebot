@@ -41,6 +41,7 @@ const bidCommand = {
     definition: {
         id: BID_COMMAND_ID,
         name: "Bid",
+        type: "system",
         active: true,
         trigger: "!bid",
         description: "Allows viewers to participate in the Bid game.",

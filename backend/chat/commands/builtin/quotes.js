@@ -10,6 +10,7 @@ const quotesManagement = {
         id: "firebot:quotesmanagement",
         name: "Quotes Management",
         active: true,
+        type: "system",
         trigger: "!quote",
         description: "Allows quote management via chat.",
         autoDeleteTrigger: false,

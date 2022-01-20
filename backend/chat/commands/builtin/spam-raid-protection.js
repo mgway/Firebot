@@ -7,6 +7,7 @@ const spamRaidProtection = {
     definition: {
         id: "firebot:spamRaidProtection",
         name: "Spam Raid Protection",
+        type: "system",
         active: true,
         hidden: false,
         trigger: "!spamraidprotection",

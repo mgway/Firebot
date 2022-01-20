@@ -7,6 +7,7 @@ const commandList = {
     definition: {
         id: "firebot:commandlist",
         name: "Command List",
+        type: "system",
         active: true,
         trigger: "!commands",
         description: "Displays link to your profile page with all available commands.",

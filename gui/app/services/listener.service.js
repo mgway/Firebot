@@ -30,7 +30,6 @@
             info: {},
             backupComplete: {},
             currentViewersUpdate: {},
-            systemCommandsUpdated: {},
             integrationConnectionUpdate: {},
             integrationsUpdated: {},
             clearEffects: {},
@@ -69,7 +68,6 @@
             CELEBREATE: "celebrate",
             INFO: "info",
             BACKUP_COMPLETE: "backupComplete",
-            SYS_CMDS_UPDATED: "systemCommandsUpdated",
             INTEGRATION_CONNECTION_UPDATE: "integrationConnectionUpdate",
             INTEGRATIONS_UPDATED: "integrationsUpdated",
             CLEAR_EFFECTS: "clearEffects",
@@ -393,15 +391,6 @@
      */
         ipcRenderer.on("backupComplete", function(event, data) {
             _.forEach(registeredListeners.backupComplete, listener => {
-                runListener(listener, data);
-            });
-        });
-
-        /**
-     * sys cmd listener
-     */
-        ipcRenderer.on("systemCommandsUpdated", function(event, data) {
-            _.forEach(registeredListeners.systemCommandsUpdated, listener => {
                 runListener(listener, data);
             });
         });

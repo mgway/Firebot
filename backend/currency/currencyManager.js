@@ -111,6 +111,7 @@ function createCurrencyCommandDefinition(currency) {
         definition: {
             id: "firebot:currency:" + currencyId,
             name: currencyName + " Management",
+            type: "system",
             active: true,
             trigger: "!" + cleanName,
             description: "Allows management of the \"" + currencyName + "\" currency",
