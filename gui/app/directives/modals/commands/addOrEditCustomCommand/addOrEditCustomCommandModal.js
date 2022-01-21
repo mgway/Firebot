@@ -162,20 +162,11 @@
             };
 
             $ctrl.deleteSubcommand = (id) => {
-                utilityService.showConfirmationModal({
-                    title: "Delete Subcommand",
-                    question: `Are you sure you want to delete this subcommand?`,
-                    confirmLabel: "Delete",
-                    confirmBtnType: "btn-danger"
-                }).then(confirmed => {
-                    if (confirmed) {
-                        if (id === "fallback-subcommand") {
-                            $ctrl.command.fallbackSubcommand = null;
-                        } else if ($ctrl.command.subCommands) {
-                            $ctrl.command.subCommands = $ctrl.command.subCommands.filter(sc => sc.id !== id);
-                        }
-                    }
-                });
+                if (id === "fallback-subcommand") {
+                    $ctrl.command.fallbackSubcommand = null;
+                } else if ($ctrl.command.subCommands) {
+                    $ctrl.command.subCommands = $ctrl.command.subCommands.filter(sc => sc.id !== id);
+                }
             };
 
             $ctrl.editSubcommand = (id) => {
