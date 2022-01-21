@@ -1,105 +1,93 @@
 "use strict";
 
-const util = require("../../../utility");
-const twitchChat = require("../../../chat/twitch-chat");
-const systemCommandManager = require("../../../chat/commands/system-command-manager");
-const gameManager = require("../../game-manager");
-const currencyDatabase = require("../../../database/currencyDatabase");
+const util = require("../../../../utility");
+const twitchChat = require("../../../twitch-chat");
+const gameManager = require("../../../../games/game-manager");
+const currencyDatabase = require("../../../../database/currencyDatabase");
 const moment = require("moment");
 const NodeCache = require("node-cache");
+const SystemCommand = require("../../system-command");
 
-let activeBiddingInfo = {
-    "active": false,
-    "currentBid": 0,
-    "topBidder": ""
-};
-let bidTimer;
-const cooldownCache = new NodeCache({checkperiod: 5});
-const BID_COMMAND_ID = "firebot:bid";
+class BidCommand extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:bid",
+            name: "Bid",
+            type: "system",
+            active: true,
+            trigger: "!bid",
+            description: "Allows viewers to participate in the Bid game.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            hideCooldowns: true,
+            subCommands: [
+                {
+                    id: "bidStart",
+                    arg: "start",
+                    usage: "start [currencyAmount]",
+                    description: "Starts the bidding at the given amount.",
+                    hideCooldowns: true,
+                    restrictionData: {
+                        restrictions: [
+                            {
+                                id: "sys-cmd-mods-only-perms",
+                                type: "firebot:permissions",
+                                mode: "roles",
+                                roleIds: [
+                                    "broadcaster",
+                                    "mod"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: "bidStop",
+                    arg: "stop",
+                    usage: "stop",
+                    description: "Manually stops the bidding. Highest bidder wins.",
+                    hideCooldowns: true,
+                    restrictionData: {
+                        restrictions: [
+                            {
+                                id: "sys-cmd-mods-only-perms",
+                                type: "firebot:permissions",
+                                mode: "roles",
+                                roleIds: [
+                                    "broadcaster",
+                                    "mod"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: "bidAmount",
+                    arg: "\\d+",
+                    regex: true,
+                    usage: "[currencyAmount]",
+                    description: "Joins the bidding at the given amount.",
+                    hideCooldowns: true
+                }
+            ]
+        }, false);
 
-function purgeCaches() {
-    cooldownCache.flushAll();
-    activeBiddingInfo = {
-        "active": false,
-        "currentBid": 0,
-        "topBidder": ""
-    };
-}
+        this.cooldownCache = new NodeCache({checkperiod: 5});
+        this.bidTimer = null;
 
-function stopBidding(chatter) {
-    clearTimeout(bidTimer);
-    if (activeBiddingInfo.topBidder) {
-        twitchChat.sendChatMessage(`${activeBiddingInfo.topBidder} has won the bidding with ${activeBiddingInfo.currentBid}!`, null, chatter);
-    } else {
-        twitchChat.sendChatMessage(`There is no winner, because no one bid!`, null, chatter);
+        this.activeBiddingInfo = {
+            "active": false,
+            "currentBid": 0,
+            "topBidder": ""
+        };
     }
 
-    purgeCaches();
-}
-
-const bidCommand = {
-    definition: {
-        id: BID_COMMAND_ID,
-        name: "Bid",
-        type: "system",
-        active: true,
-        trigger: "!bid",
-        description: "Allows viewers to participate in the Bid game.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        hideCooldowns: true,
-        subCommands: [
-            {
-                id: "bidStart",
-                arg: "start",
-                usage: "start [currencyAmount]",
-                description: "Starts the bidding at the given amount.",
-                hideCooldowns: true,
-                restrictionData: {
-                    restrictions: [
-                        {
-                            id: "sys-cmd-mods-only-perms",
-                            type: "firebot:permissions",
-                            mode: "roles",
-                            roleIds: [
-                                "broadcaster",
-                                "mod"
-                            ]
-                        }
-                    ]
-                }
-            },
-            {
-                id: "bidStop",
-                arg: "stop",
-                usage: "stop",
-                description: "Manually stops the bidding. Highest bidder wins.",
-                hideCooldowns: true,
-                restrictionData: {
-                    restrictions: [
-                        {
-                            id: "sys-cmd-mods-only-perms",
-                            type: "firebot:permissions",
-                            mode: "roles",
-                            roleIds: [
-                                "broadcaster",
-                                "mod"
-                            ]
-                        }
-                    ]
-                }
-            },
-            {
-                id: "bidAmount",
-                arg: "\\d+",
-                regex: true,
-                usage: "[currencyAmount]",
-                description: "Joins the bidding at the given amount.",
-                hideCooldowns: true
-            }
-        ]
-    },
-    onTriggerEvent: async event => {
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { chatEvent, userCommand } = event;
 
         const bidSettings = gameManager.getGameSettings("firebot-bid");
@@ -120,7 +108,7 @@ const bidCommand = {
                 return;
             }
 
-            if (activeBiddingInfo.active !== false) {
+            if (this.activeBiddingInfo.active !== false) {
                 twitchChat.sendChatMessage(`There is already a bid running. Use !bid stop to stop it.`, username, chatter);
                 twitchChat.deleteMessage(chatEvent.id);
                 return;
@@ -132,36 +120,36 @@ const bidCommand = {
                 return;
             }
 
-            activeBiddingInfo = {
+            this.activeBiddingInfo = {
                 "active": true,
                 "currentBid": bidAmount,
                 "topBidder": ""
             };
 
             let raiseMinimum = bidSettings.settings.currencySettings.minIncrement;
-            let minimumBidWithRaise = activeBiddingInfo.currentBid + raiseMinimum;
+            let minimumBidWithRaise = this.activeBiddingInfo.currentBid + raiseMinimum;
             twitchChat.sendChatMessage(`Bidding has started at ${bidAmount} ${currencyName}. Type !bid ${minimumBidWithRaise} to start bidding.`, null, chatter);
 
             let timeLimit = bidSettings.settings.timeSettings.timeLimit * 60000;
-            bidTimer = setTimeout(function() {
-                stopBidding(chatter);
+            this.bidTimer = setTimeout(function() {
+                this.stopBidding(chatter);
             }, timeLimit);
 
         } else if (event.userCommand.subcommandId === "bidStop") {
-            stopBidding(chatter);
+            this.stopBidding(chatter);
         } else if (event.userCommand.subcommandId === "bidAmount") {
 
             const triggeredArg = userCommand.args[0];
             const bidAmount = parseInt(triggeredArg);
             const username = userCommand.commandSender;
 
-            if (activeBiddingInfo.active === false) {
+            if (this.activeBiddingInfo.active === false) {
                 twitchChat.sendChatMessage(`There is no active bidding in progress.`, username, chatter);
                 twitchChat.deleteMessage(chatEvent.id);
                 return;
             }
 
-            let cooldownExpireTime = cooldownCache.get(username);
+            let cooldownExpireTime = this.cooldownCache.get(username);
             if (cooldownExpireTime && moment().isBefore(cooldownExpireTime)) {
                 const timeRemainingDisplay = util.secondsForHumans(Math.abs(moment().diff(cooldownExpireTime, 'seconds')));
                 twitchChat.sendChatMessage(`You placed a bid recently! Please wait ${timeRemainingDisplay} before placing another bid.`, username, chatter);
@@ -169,7 +157,7 @@ const bidCommand = {
                 return;
             }
 
-            if (activeBiddingInfo.topBidder === username) {
+            if (this.activeBiddingInfo.topBidder === username) {
                 twitchChat.sendChatMessage("You are already the top bidder. You can't bid against yourself.", username, chatter);
                 twitchChat.deleteMessage(chatEvent.id);
                 return;
@@ -198,15 +186,15 @@ const bidCommand = {
             }
 
             let raiseMinimum = bidSettings.settings.currencySettings.minIncrement;
-            let minimumBidWithRaise = activeBiddingInfo.currentBid + raiseMinimum;
+            let minimumBidWithRaise = this.activeBiddingInfo.currentBid + raiseMinimum;
             if (bidAmount < minimumBidWithRaise) {
                 twitchChat.sendChatMessage(`You must bid at least ${minimumBidWithRaise} ${currencyName}.`, username, chatter);
                 twitchChat.deleteMessage(chatEvent.id);
                 return;
             }
 
-            let previousHighBidder = activeBiddingInfo.topBidder;
-            let previousHighBidAmount = activeBiddingInfo.currentBid;
+            let previousHighBidder = this.activeBiddingInfo.topBidder;
+            let previousHighBidAmount = this.activeBiddingInfo.currentBid;
             if (previousHighBidder != null && previousHighBidder !== "") {
                 await currencyDatabase.adjustCurrencyForUser(previousHighBidder, currencyId, previousHighBidAmount);
                 twitchChat.sendChatMessage(`You have been out bid! You've been refunded ${previousHighBidAmount} ${currencyName}.`, previousHighBidder, chatter);
@@ -217,35 +205,43 @@ const bidCommand = {
             twitchChat.sendChatMessage(`${username} is the new high bidder at ${bidAmount} ${currencyName}. To bid, type !bid ${newTopBidWithRaise} (or higher).`);
 
             // eslint-disable-next-line no-use-before-define
-            setNewHighBidder(username, bidAmount);
+            this.setNewHighBidder(username, bidAmount);
 
             let cooldownSecs = bidSettings.settings.cooldownSettings.cooldown;
             if (cooldownSecs && cooldownSecs > 0) {
                 const expireTime = moment().add(cooldownSecs, 'seconds');
-                cooldownCache.set(username, expireTime, cooldownSecs);
+                this.cooldownCache.set(username, expireTime, cooldownSecs);
             }
         } else {
             twitchChat.sendChatMessage(`Incorrect bid usage: ${userCommand.trigger} [bidAmount]`, userCommand.commandSender, chatter);
             twitchChat.deleteMessage(chatEvent.id);
         }
     }
-};
 
-function registerBidCommand() {
-    if (!systemCommandManager.hasSystemCommand(BID_COMMAND_ID)) {
-        systemCommandManager.registerSystemCommand(bidCommand);
+    purgeCaches() {
+        this.cooldownCache.flushAll();
+        this.activeBiddingInfo = {
+            "active": false,
+            "currentBid": 0,
+            "topBidder": ""
+        };
+    }
+
+    setNewHighBidder(username, amount) {
+        this.activeBiddingInfo.currentBid = amount;
+        this.activeBiddingInfo.topBidder = username;
+    }
+
+    stopBidding(chatter) {
+        clearTimeout(this.bidTimer);
+        if (this.activeBiddingInfo.topBidder) {
+            twitchChat.sendChatMessage(`${this.activeBiddingInfo.topBidder} has won the bidding with ${this.activeBiddingInfo.currentBid}!`, null, chatter);
+        } else {
+            twitchChat.sendChatMessage(`There is no winner, because no one bid!`, null, chatter);
+        }
+
+        this.purgeCaches();
     }
 }
 
-function unregisterBidCommand() {
-    systemCommandManager.unregisterSystemCommand(BID_COMMAND_ID);
-}
-
-function setNewHighBidder(username, amount) {
-    activeBiddingInfo.currentBid = amount;
-    activeBiddingInfo.topBidder = username;
-}
-
-exports.purgeCaches = purgeCaches;
-exports.registerBidCommand = registerBidCommand;
-exports.unregisterBidCommand = unregisterBidCommand;
+module.exports = new BidCommand();

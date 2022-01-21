@@ -1,35 +1,45 @@
 "use strict";
 
+const SystemCommand = require("../../system-command");
 const Steam = require("./steam-access");
 const twitchChat = require("../../../twitch-chat");
 const twitchChannels = require("../../../../twitch-api/resource/channels");
 
-const steam = {
-    definition: {
-        id: "firebot:steam",
-        name: "Steam Search",
-        type: "system",
-        active: true,
-        trigger: "!steam",
-        usage: "[game name]",
-        description: "Displays information about a game on steam.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        cooldown: {
-            user: 0,
-            global: 5
-        },
-        options: {
-            outputTemplate: {
-                type: "string",
-                title: "Output Template",
-                tip: "Variables: {gameName}, {price}, {releaseDate}, {metaCriticScore}, {steamUrl}",
-                default: `{gameName} (Price: {price} - Released: {releaseDate} - Metacritic: {metaCriticScore}) {steamUrl}`,
-                useTextArea: true
-            }
-        }
-    },
-    onTriggerEvent: async event => {
+class SteamCommand extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:steam",
+            name: "Steam Search",
+            type: "system",
+            active: true,
+            trigger: "!steam",
+            usage: "[game name]",
+            description: "Displays information about a game on steam.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            cooldown: {
+                user: 0,
+                global: 5
+            },
+            options: {
+                outputTemplate: {
+                    type: "string",
+                    title: "Output Template",
+                    tip: "Variables: {gameName}, {price}, {releaseDate}, {metaCriticScore}, {steamUrl}",
+                    default: `{gameName} (Price: {price} - Released: {releaseDate} - Metacritic: {metaCriticScore}) {steamUrl}`,
+                    useTextArea: true
+                }
+            },
+            hidden: false
+        });
+    }
+
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { commandOptions } = event;
         let gameName = event.userCommand.args.join(" ").trim();
         let message = "Couldn't find a Steam game using that name";
@@ -56,6 +66,6 @@ const steam = {
 
         twitchChat.sendChatMessage(message);
     }
-};
+}
 
-module.exports = steam;
+module.exports = new SteamCommand();

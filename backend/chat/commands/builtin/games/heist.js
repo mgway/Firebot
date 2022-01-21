@@ -1,45 +1,49 @@
 "use strict";
 
 
-const util = require("../../../utility");
-const twitchChat = require("../../../chat/twitch-chat");
-const systemCommandManager = require("../../../chat/commands/system-command-manager");
-const gameManager = require("../../game-manager");
-const currencyDatabase = require("../../../database/currencyDatabase");
-const customRolesManager = require("../../../roles/custom-roles-manager");
-const teamRolesManager = require("../../../roles/team-roles-manager");
-const twitchRolesManager = require("../../../../shared/twitch-roles");
+const util = require("../../../../utility");
+const twitchChat = require("../../../twitch-chat");
+const gameManager = require("../../../../games/game-manager");
+const currencyDatabase = require("../../../../database/currencyDatabase");
+const customRolesManager = require("../../../../roles/custom-roles-manager");
+const teamRolesManager = require("../../../../roles/team-roles-manager");
+const twitchRolesManager = require("../../../../../shared/twitch-roles");
 const moment = require("moment");
+const SystemCommand = require("../../system-command");
 
-const heistRunner = require("./heist-runner");
+const heistRunner = require("../../../../games/builtin/heist/heist-runner");
+class HeistCommand extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:heist",
+            name: "Heist",
+            type: "system",
+            active: true,
+            trigger: "!heist",
+            description: "Allows viewers to play the Heist game.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            hideCooldowns: true,
+            baseCommandDescription: "Starts/joins the heist with the default wager amount, if one is set.",
+            subCommands: [
+                {
+                    id: "wagerAmount",
+                    arg: "\\d+",
+                    regex: true,
+                    usage: "[wagerAmount]",
+                    description: "Starts/joins the heist with the given amount.",
+                    hideCooldowns: true
+                }
+            ]
+        }, false);
+    }
 
-const HEIST_COMMAND_ID = "firebot:heist";
-
-const heistCommand = {
-    definition: {
-        id: HEIST_COMMAND_ID,
-        name: "Heist",
-        type: "system",
-        active: true,
-        trigger: "!heist",
-        description: "Allows viewers to play the Heist game.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        hideCooldowns: true,
-        baseCommandDescription: "Starts/joins the heist with the default wager amount, if one is set.",
-        subCommands: [
-            {
-                id: "wagerAmount",
-                arg: "\\d+",
-                regex: true,
-                usage: "[wagerAmount]",
-                description: "Starts/joins the heist with the given amount.",
-                hideCooldowns: true
-            }
-        ]
-    },
-    onTriggerEvent: async event => {
-
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { chatEvent, userCommand } = event;
 
         const username = userCommand.commandSender;
@@ -84,7 +88,7 @@ const heistCommand = {
         // parse the wager amount
         let wagerAmount;
         if (event.userCommand.args.length < 1) {
-            let defaultWager = heistSettings.settings.currencySettings.defaultWager;
+            const defaultWager = heistSettings.settings.currencySettings.defaultWager;
             if ((defaultWager == null || defaultWager < 1)) {
                 if (heistSettings.settings.entryMessages.noWagerAmount) {
                     const noWagerAmountMsg = heistSettings.settings.entryMessages.noWagerAmount
@@ -172,11 +176,11 @@ const heistCommand = {
 
         // get the users success percentage
         let successChance = 50;
-        let successChancesSettings = heistSettings.settings.successChanceSettings.successChances;
+        const successChancesSettings = heistSettings.settings.successChanceSettings.successChances;
         if (successChancesSettings) {
             successChance = successChancesSettings.basePercent;
 
-            for (let role of successChancesSettings.roles) {
+            for (const role of successChancesSettings.roles) {
                 if (allRoles.some(r => r.id === role.roleId)) {
                     successChance = role.percent;
                     break;
@@ -186,11 +190,11 @@ const heistCommand = {
 
         // get the users winnings multiplier
         let winningsMultiplier = 1.5;
-        let winningsMultiplierSettings = heistSettings.settings.winningsMultiplierSettings.multipliers;
+        const winningsMultiplierSettings = heistSettings.settings.winningsMultiplierSettings.multipliers;
         if (winningsMultiplierSettings) {
             winningsMultiplier = winningsMultiplierSettings.base;
 
-            for (let role of winningsMultiplierSettings.roles) {
+            for (const role of winningsMultiplierSettings.roles) {
                 if (allRoles.some(r => r.id === role.roleId)) {
                     winningsMultiplier = role.value;
                     break;
@@ -233,22 +237,10 @@ const heistCommand = {
             twitchChat.sendChatMessage(onJoinMessage, null, chatter);
         }
     }
-};
 
-function registerHeistCommand() {
-    if (!systemCommandManager.hasSystemCommand(HEIST_COMMAND_ID)) {
-        systemCommandManager.registerSystemCommand(heistCommand);
+    clearCooldown() {
+        heistRunner.clearCooldowns();
     }
 }
 
-function unregisterHeistCommand() {
-    systemCommandManager.unregisterSystemCommand(HEIST_COMMAND_ID);
-}
-
-function clearCooldown() {
-    heistRunner.clearCooldowns();
-}
-
-exports.clearCooldown = clearCooldown;
-exports.registerHeistCommand = registerHeistCommand;
-exports.unregisterHeistCommand = unregisterHeistCommand;
+module.exports = new HeistCommand();

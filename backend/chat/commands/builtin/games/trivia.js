@@ -1,105 +1,56 @@
 "use strict";
 
-const util = require("../../../utility");
-const twitchChat = require("../../../chat/twitch-chat");
-const twitchListeners = require("../../../chat/chat-listeners/twitch-chat-listeners");
-const systemCommandManager = require("../../../chat/commands/system-command-manager");
-const gameManager = require("../../game-manager");
-const currencyDatabase = require("../../../database/currencyDatabase");
-const customRolesManager = require("../../../roles/custom-roles-manager");
-const teamRolesManager = require("../../../roles/team-roles-manager");
-const twitchRolesManager = require("../../../../shared/twitch-roles");
-const logger = require("../../../logwrapper");
+const util = require("../../../../utility");
+const twitchChat = require("../../../twitch-chat");
+const twitchListeners = require("../../../chat-listeners/twitch-chat-listeners");
+const gameManager = require("../../../../games/game-manager");
+const currencyDatabase = require("../../../../database/currencyDatabase");
+const customRolesManager = require("../../../../roles/custom-roles-manager");
+const teamRolesManager = require("../../../../roles/team-roles-manager");
+const twitchRolesManager = require("../../../../../shared/twitch-roles");
+const logger = require("../../../../logwrapper");
 const moment = require("moment");
-const triviaHelper = require("./trivia-helper");
+const triviaHelper = require("../../../../games/builtin/trivia/trivia-helper");
 const NodeCache = require("node-cache");
+const SystemCommand = require("../../system-command");
 
-let fiveSecTimeoutId;
-let answerTimeoutId;
-let currentQuestion = null;
 
-function clearCurrentQuestion() {
-    currentQuestion = null;
-    if (fiveSecTimeoutId) {
-        clearTimeout(fiveSecTimeoutId);
-        fiveSecTimeoutId = null;
-    }
-    if (answerTimeoutId) {
-        clearTimeout(answerTimeoutId);
-        answerTimeoutId = null;
-    }
-}
+class TriviaCommand extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:trivia",
+            name: "Trivia",
+            type: "system",
+            active: true,
+            trigger: "!trivia",
+            description: "Allows viewers to play trivia",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            hideCooldowns: true,
+            subCommands: [
+                {
+                    id: "wagerAmount",
+                    arg: "\\d+",
+                    regex: true,
+                    usage: "[wager]",
+                    description: "Triggers trivia for the given wager amount",
+                    hideCooldowns: true
+                }
+            ]
+        }, false);
 
-twitchListeners.events.on("chat-message", async data => {
-    /**@type {import("../../../chat/chat-helpers").FirebotChatMessage} */
-    const chatMessage = data;
-    if (!currentQuestion) {
-        return;
-    }
-    const { username, question, wager, winningsMultiplier, currencyId, chatter } = currentQuestion;
-    //ensure chat is from question user
-    if (username !== chatMessage.username) {
-        return;
-    }
-    //grab args
-    const args = chatMessage.rawText.split(" ");
-    if (args.length < 1) {
-        return;
-    }
-    //insure number
-    const firstArg = parseInt(args[0]);
-    if (isNaN(firstArg)) {
-        return;
-    }
-    // outside the answer bound
-    if (firstArg < 1 || firstArg > question.answers.length) {
-        return;
+        this.cooldownCache = new NodeCache({checkperiod: 5});
+        this.fiveSecTimeoutId = null;
+        this.answerTimeoutId = null;
+        this.currentQuestion = null;
     }
 
-    const isCorrect = firstArg === question.correctIndex;
-
-    if (isCorrect) {
-        const winnings = Math.floor(wager * winningsMultiplier);
-
-        await currencyDatabase.adjustCurrencyForUser(username, currencyId, winnings);
-
-        const currency = currencyDatabase.getCurrencyById(currencyId);
-
-        twitchChat.sendChatMessage(`${username}, that is correct! You have won ${util.commafy(winnings)} ${currency.name}`, null, chatter);
-    } else {
-        twitchChat.sendChatMessage(`Sorry ${username}, that is incorrect. Better luck next time!`, null, chatter);
-    }
-    clearCurrentQuestion();
-});
-
-const cooldownCache = new NodeCache({checkperiod: 5});
-
-const TRIVIA_COMMAND_ID = "firebot:trivia";
-
-const triviaCommand = {
-    definition: {
-        id: TRIVIA_COMMAND_ID,
-        name: "Trivia",
-        type: "system",
-        active: true,
-        trigger: "!trivia",
-        description: "Allows viewers to play trivia",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        hideCooldowns: true,
-        subCommands: [
-            {
-                id: "wagerAmount",
-                arg: "\\d+",
-                regex: true,
-                usage: "[wager]",
-                description: "Triggers trivia for the given wager amount",
-                hideCooldowns: true
-            }
-        ]
-    },
-    onTriggerEvent: async event => {
-
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { userCommand } = event;
 
         const triviaSettings = gameManager.getGameSettings("firebot-trivia");
@@ -112,8 +63,8 @@ const triviaCommand = {
 
             const username = userCommand.commandSender;
 
-            if (currentQuestion) {
-                if (currentQuestion.username === username) {
+            if (this.currentQuestion) {
+                if (this.currentQuestion.username === username) {
                     twitchChat.sendChatMessage(`${username}, you already have a trivia question in progress!`, null, chatter);
                     return;
                 }
@@ -121,7 +72,7 @@ const triviaCommand = {
                 return;
             }
 
-            const cooldownExpireTime = cooldownCache.get(username);
+            const cooldownExpireTime = this.cooldownCache.get(username);
             if (cooldownExpireTime && moment().isBefore(cooldownExpireTime)) {
                 const timeRemainingDisplay = util.secondsForHumans(Math.abs(moment().diff(cooldownExpireTime, 'seconds')));
                 twitchChat.sendChatMessage(`${username}, trivia is currently on cooldown for you. Time remaining: ${timeRemainingDisplay}`, null, chatter);
@@ -173,10 +124,10 @@ const triviaCommand = {
                 return;
             }
 
-            let cooldownSecs = triviaSettings.settings.cooldownSettings.cooldown;
+            const cooldownSecs = triviaSettings.settings.cooldownSettings.cooldown;
             if (cooldownSecs && cooldownSecs > 0) {
                 const expireTime = moment().add(cooldownSecs, 'seconds');
-                cooldownCache.set(username, expireTime, cooldownSecs);
+                this.cooldownCache.set(username, expireTime, cooldownSecs);
             }
 
             try {
@@ -226,7 +177,7 @@ const triviaCommand = {
                 }
             }
 
-            currentQuestion = {
+            this.currentQuestion = {
                 username: username,
                 question: question,
                 wager: wagerAmount,
@@ -241,19 +192,19 @@ const triviaCommand = {
 
             twitchChat.sendChatMessage(questionMessage, null, chatter);
 
-            fiveSecTimeoutId = setTimeout(() => {
-                if (currentQuestion == null || currentQuestion.username !== username) {
+            this.fiveSecTimeoutId = setTimeout(() => {
+                if (this.currentQuestion == null || this.currentQuestion.username !== username) {
                     return;
                 }
                 twitchChat.sendChatMessage(`@${username}, 5 seconds remaining to answer...`, null, chatter);
             }, (answerTimeout - 6) * 1000);
 
-            answerTimeoutId = setTimeout(() => {
-                if (currentQuestion == null || currentQuestion.username !== username) {
+            this.answerTimeoutId = setTimeout(() => {
+                if (this.currentQuestion == null || this.currentQuestion.username !== username) {
                     return;
                 }
                 twitchChat.sendChatMessage(`@${username} did not provide an answer in time!`, null, chatter);
-                clearCurrentQuestion();
+                this.clearCurrentQuestion();
             }, answerTimeout * 1000);
         } else {
             const noWagerMessage = triviaSettings.settings.chatSettings.noWagerMessage
@@ -261,23 +212,70 @@ const triviaCommand = {
             twitchChat.sendChatMessage(noWagerMessage, null, chatter);
         }
     }
-};
 
-function registerTriviaCommand() {
-    if (!systemCommandManager.hasSystemCommand(TRIVIA_COMMAND_ID)) {
-        systemCommandManager.registerSystemCommand(triviaCommand);
+    purgeCaches() {
+        this.cooldownCache.flushAll();
+        this.clearCurrentQuestion();
+    }
+
+    clearCurrentQuestion() {
+        this.currentQuestion = null;
+        if (this.fiveSecTimeoutId) {
+            clearTimeout(this.fiveSecTimeoutId);
+            this.fiveSecTimeoutId = null;
+        }
+        if (this.answerTimeoutId) {
+            clearTimeout(this.answerTimeoutId);
+            this.answerTimeoutId = null;
+        }
+    }
+
+    async handleAnswer(data) {
+        /**@type {import("../../../chat-helpers").FirebotChatMessage} */
+        const chatMessage = data;
+        if (!this.currentQuestion) {
+            return;
+        }
+        const { username, question, wager, winningsMultiplier, currencyId, chatter } = this.currentQuestion;
+        //ensure chat is from question user
+        if (username !== chatMessage.username) {
+            return;
+        }
+        //grab args
+        const args = chatMessage.rawText.split(" ");
+        if (args.length < 1) {
+            return;
+        }
+        //insure number
+        const firstArg = parseInt(args[0]);
+        if (isNaN(firstArg)) {
+            return;
+        }
+        // outside the answer bound
+        if (firstArg < 1 || firstArg > question.answers.length) {
+            return;
+        }
+
+        const isCorrect = firstArg === question.correctIndex;
+
+        if (isCorrect) {
+            const winnings = Math.floor(wager * winningsMultiplier);
+
+            await currencyDatabase.adjustCurrencyForUser(username, currencyId, winnings);
+
+            const currency = currencyDatabase.getCurrencyById(currencyId);
+
+            twitchChat.sendChatMessage(`${username}, that is correct! You have won ${util.commafy(winnings)} ${currency.name}`, null, chatter);
+        } else {
+            twitchChat.sendChatMessage(`Sorry ${username}, that is incorrect. Better luck next time!`, null, chatter);
+        }
+        this.clearCurrentQuestion();
     }
 }
+const triviaCommand = new TriviaCommand();
 
-function unregisterTriviaCommand() {
-    systemCommandManager.unregisterSystemCommand(TRIVIA_COMMAND_ID);
-}
+twitchListeners.events.on("chat-message", async data => {
+    triviaCommand.handleAnswer(data);
+});
 
-function purgeCaches() {
-    cooldownCache.flushAll();
-    clearCurrentQuestion();
-}
-
-exports.purgeCaches = purgeCaches;
-exports.registerTriviaCommand = registerTriviaCommand;
-exports.unregisterTriviaCommand = unregisterTriviaCommand;
+module.exports = triviaCommand;

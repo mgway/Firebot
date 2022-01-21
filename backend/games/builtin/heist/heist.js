@@ -1,6 +1,6 @@
 "use strict";
 
-const heistCommand = require("./heist-command");
+const heistCommand = require("../../../chat/commands/builtin/games/heist");
 
 /**
  * @type {import('../../game-manager').FirebotGame}
@@ -385,10 +385,10 @@ module.exports = {
         }
     },
     onLoad: () => {
-        heistCommand.registerHeistCommand();
+        heistCommand.register();
     },
     onUnload: () => {
-        heistCommand.unregisterHeistCommand();
+        heistCommand.unregister();
         heistCommand.clearCooldown();
     },
     onSettingsUpdate: () => {

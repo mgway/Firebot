@@ -1,6 +1,6 @@
 "use strict";
 
-const spinCommand = require("./spin-command");
+const spinCommand = require("../../../chat/commands/builtin/games/spin");
 
 /**
  * @type {import('../../game-manager').FirebotGame}
@@ -207,10 +207,10 @@ module.exports = {
         }
     },
     onLoad: () => {
-        spinCommand.registerSpinCommand();
+        spinCommand.register();
     },
     onUnload: () => {
-        spinCommand.unregisterSpinCommand();
+        spinCommand.unregister();
         spinCommand.purgeCaches();
     },
     onSettingsUpdate: () => {

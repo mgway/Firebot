@@ -1,60 +1,66 @@
 "use strict";
 
+const SystemCommand = require("../system-command");
 const customRoleManager = require("../../../roles/custom-roles-manager");
 const chat = require("../../twitch-chat");
 
-const model = {
-    definition: {
-        id: "firebot:role-management",
-        name: "Custom Role Management",
-        active: true,
-        type: "system",
-        trigger: "!role",
-        description: "Allows management of viewer's custom roles from chat.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        cooldown: {
-            user: 0,
-            global: 0
-        },
-        restrictionData: {
-            restrictions: [
+class CustomRoleManagement extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:role-management",
+            name: "Custom Role Management",
+            active: true,
+            type: "system",
+            trigger: "!role",
+            description: "Allows management of viewer's custom roles from chat.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            hidden: false,
+            cooldown: {
+                user: 0,
+                global: 0
+            },
+            restrictionData: {
+                restrictions: [
+                    {
+                        id: "sys-cmd-mods-only-perms",
+                        type: "firebot:permissions",
+                        mode: "roles",
+                        roleIds: [
+                            "broadcaster"
+                        ]
+                    }
+                ]
+            },
+            subCommands: [
                 {
-                    id: "sys-cmd-mods-only-perms",
-                    type: "firebot:permissions",
-                    mode: "roles",
-                    roleIds: [
-                        "broadcaster"
-                    ]
+                    arg: "add",
+                    usage: "add @viewer roleName",
+                    description: "Adds a custom role to a viewer.",
+                    minArgs: 3
+                },
+                {
+                    arg: "remove",
+                    usage: "remove @viewer roleName",
+                    description: "Removes a custom role from a viewer.",
+                    minArgs: 3
+                },
+                {
+                    arg: "list",
+                    usage: "list [@viewer]",
+                    description: "List all custom roles, or just roles a viewer has."
                 }
             ]
-        },
-        subCommands: [
-            {
-                arg: "add",
-                usage: "add @viewer roleName",
-                description: "Adds a custom role to a viewer.",
-                minArgs: 3
-            },
-            {
-                arg: "remove",
-                usage: "remove @viewer roleName",
-                description: "Removes a custom role from a viewer.",
-                minArgs: 3
-            },
-            {
-                arg: "list",
-                usage: "list [@viewer]",
-                description: "List all custom roles, or just roles a viewer has."
-            }
-        ]
-    },
-    /**
-     * When the command is triggered
-     */
-    onTriggerEvent: async event => {
+        });
+    }
 
-        let { args, triggeredArg } = event.userCommand;
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
+        const { args, triggeredArg } = event.userCommand;
 
         if (args.length < 1) {
             chat.sendChatMessage("Incorrect command usage!");
@@ -63,20 +69,20 @@ const model = {
 
         switch (triggeredArg) {
         case "add": {
-            let roleName = args.slice(2);
-            let role = customRoleManager.getRoleByName(roleName);
+            const roleName = args.slice(2);
+            const role = customRoleManager.getRoleByName(roleName);
             if (role == null) {
                 chat.sendChatMessage("Can't find a role by that name.");
             } else {
-                let username = args[1].replace("@", "");
+                const username = args[1].replace("@", "");
                 customRoleManager.addViewerToRole(role.id, username);
                 chat.sendChatMessage(`Added role ${role.name} to ${username}`);
             }
             break;
         }
         case "remove": {
-            let roleName = args.slice(2);
-            let role = customRoleManager.getRoleByName(roleName);
+            const roleName = args.slice(2);
+            const role = customRoleManager.getRoleByName(roleName);
             if (role == null) {
                 chat.sendChatMessage("Can't find a role by that name.");
             } else {
@@ -88,8 +94,8 @@ const model = {
         }
         case "list": {
             if (args.length > 1) {
-                let username = args[1].replace("@", "");
-                let roleNames = customRoleManager.getAllCustomRolesForViewer(username).map(r => r.name);
+                const username = args[1].replace("@", "");
+                const roleNames = customRoleManager.getAllCustomRolesForViewer(username).map(r => r.name);
                 if (roleNames.length < 1) {
                     chat.sendChatMessage(`${username} has no custom roles assigned.`);
                 } else {
@@ -97,7 +103,7 @@ const model = {
                 }
 
             } else {
-                let roleNames = customRoleManager.getCustomRoles().map(r => r.name);
+                const roleNames = customRoleManager.getCustomRoles().map(r => r.name);
                 if (roleNames.length < 1) {
                     chat.sendChatMessage(`There are no custom roles available.`);
                 } else {
@@ -110,6 +116,6 @@ const model = {
             chat.sendChatMessage("Incorrect command usage!");
         }
     }
-};
+}
 
-module.exports = model;
+module.exports = new CustomRoleManagement();

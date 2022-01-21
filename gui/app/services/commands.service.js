@@ -87,7 +87,7 @@
                 }
             };
 
-            service.triggerExists = function(trigger) {
+            service.triggerExists = function(trigger, id = null) {
                 if (trigger == null) {
                     return false;
                 }
@@ -95,7 +95,7 @@
                 return [
                     ...service.commandsCache.customCommands,
                     ...service.commandsCache.systemCommands
-                ].some(c => c.trigger.toLowerCase() === trigger.toLowerCase());
+                ].some(c => c.trigger.toLowerCase() === trigger.toLowerCase() && c.id !== id);
             };
 
             service.deleteCustomCommand = (commandId) => {

@@ -58,20 +58,18 @@ const effectTypes = require("./effect-types"); // eslint-disable-line no-unused-
  * @prop {string} id - the id of the command
  *
  * @prop {string} trigger - the trigger of the command
- * @prop {boolean} [autoDeleteTrigger] - whether the trigger chat message should be deleted automatically
- * @prop {boolean} [scanWholeMessage] - whether the whole chat message should be scanned for the command
+ * @prop {boolean} autoDeleteTrigger - whether the trigger chat message should be deleted automatically
+ * @prop {boolean} scanWholeMessage - whether the whole chat message should be scanned for the command
  *
  * @prop {Cooldown} cooldown - the cooldown settings for the command
- * @prop {RestrictionData} restrictionData - the saved restrictions for the command
+ * @prop {RestrictionData} [restrictionData] - the saved restrictions for the command
  *
  * @prop {boolean} active - whether the command is enabled
- * @prop {boolean} [hidden] - whether the command is hidden on the commands list
+ * @prop {boolean} hidden - whether the command is hidden on the commands list
  *
- * @prop {object} effects - the saved effects in the command
- * @prop {string} effects.id - the effect list root id
- * @prop {any[]} effects.list - the array of effects objects
+ * @prop {import("./effect-types").Effects} [effects] - the saved effects in the command
  *
- * @prop {CustomCommandSubCommand[]} subCommands - the subcommands that belong to the command
+ * @prop {CustomCommandSubCommand[]} [subCommands] - the subcommands that belong to the command
  */
 
 /**
@@ -79,7 +77,8 @@ const effectTypes = require("./effect-types"); // eslint-disable-line no-unused-
  * @prop {string} name - the name of command
  * @prop {string} description - the description of the command
  * @prop {"system" | "custom"} type - the type of the command
- * @prop {SystemCommandOptions} options
+ * @prop {boolean} [hideCooldowns]
+ * @prop {SystemCommandOptions} [options]
  */
 
 /**

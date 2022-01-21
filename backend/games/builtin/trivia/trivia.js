@@ -1,5 +1,7 @@
 "use strict";
-const triviaCommand = require("./trivia-command");
+
+const triviaCommand = require("../../../chat/commands/builtin/games/trivia");
+
 /**
  * @type {import('../../game-manager').FirebotGame}
  */
@@ -316,10 +318,10 @@ module.exports = {
         }
     },
     onLoad: () => {
-        triviaCommand.registerTriviaCommand();
+        triviaCommand.register();
     },
     onUnload: () => {
-        triviaCommand.unregisterTriviaCommand();
+        triviaCommand.unregister();
         triviaCommand.purgeCaches();
     },
     onSettingsUpdate: () => {

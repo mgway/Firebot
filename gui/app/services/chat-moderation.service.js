@@ -123,14 +123,6 @@
                 backendCommunicator.fireEvent("removeAllBannedRegularExpressions");
             };
 
-            service.registerPermitCommand = () => {
-                backendCommunicator.fireEvent("registerPermitCommand");
-            };
-
-            service.unregisterPermitCommand = () => {
-                backendCommunicator.fireEvent("unregisterPermitCommand");
-            };
-
             return service;
         });
 }());

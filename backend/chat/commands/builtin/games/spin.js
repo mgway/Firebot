@@ -1,47 +1,52 @@
 "use strict";
 
-const util = require("../../../utility");
-const twitchChat = require("../../../chat/twitch-chat");
-const systemCommandManager = require("../../../chat/commands/system-command-manager");
-const gameManager = require("../../game-manager");
-const currencyDatabase = require("../../../database/currencyDatabase");
-const customRolesManager = require("../../../roles/custom-roles-manager");
-const teamRolesManager = require("../../../roles/team-roles-manager");
-const twitchRolesManager = require("../../../../shared/twitch-roles");
-const slotMachine = require("./slot-machine");
-const logger = require("../../../logwrapper");
+const util = require("../../../../utility");
+const twitchChat = require("../../../twitch-chat");
+const gameManager = require("../../../../games/game-manager");
+const currencyDatabase = require("../../../../database/currencyDatabase");
+const customRolesManager = require("../../../../roles/custom-roles-manager");
+const teamRolesManager = require("../../../../roles/team-roles-manager");
+const twitchRolesManager = require("../../../../../shared/twitch-roles");
+const slotMachine = require("../../../../games/builtin/slots/slot-machine");
+const logger = require("../../../../logwrapper");
 const moment = require("moment");
 const NodeCache = require("node-cache");
+const SystemCommand = require("../../system-command");
 
-const activeSpinners = new NodeCache({checkperiod: 2});
-const cooldownCache = new NodeCache({checkperiod: 5});
+class SpinCommand extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:spin",
+            name: "Spin (Slots)",
+            type: "system",
+            active: true,
+            trigger: "!spin",
+            description: "Allows viewers to play the Slots game.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            hideCooldowns: true,
+            subCommands: [
+                {
+                    id: "spinAmount",
+                    arg: "\\d+",
+                    regex: true,
+                    usage: "[currencyAmount]",
+                    description: "Spins the slot machine with the given amount",
+                    hideCooldowns: true
+                }
+            ]
+        }, false);
 
-const SPIN_COMMAND_ID = "firebot:spin";
+        this.activeSpinners = new NodeCache({checkperiod: 2});
+        this.cooldownCache = new NodeCache({checkperiod: 5});
+    }
 
-const spinCommand = {
-    definition: {
-        id: SPIN_COMMAND_ID,
-        name: "Spin (Slots)",
-        type: "system",
-        active: true,
-        trigger: "!spin",
-        description: "Allows viewers to play the Slots game.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        hideCooldowns: true,
-        subCommands: [
-            {
-                id: "spinAmount",
-                arg: "\\d+",
-                regex: true,
-                usage: "[currencyAmount]",
-                description: "Spins the slot machine with the given amount",
-                hideCooldowns: true
-            }
-        ]
-    },
-    onTriggerEvent: async event => {
-
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { userCommand } = event;
 
         const slotsSettings = gameManager.getGameSettings("firebot-slots");
@@ -77,7 +82,7 @@ const spinCommand = {
             return;
         }
 
-        if (activeSpinners.get(username)) {
+        if (this.activeSpinners.get(username)) {
             if (slotsSettings.settings.generalMessages.alreadySpinning) {
                 const alreadySpinningMsg = slotsSettings.settings.generalMessages.alreadySpinning
                     .replace("{username}", username);
@@ -88,7 +93,7 @@ const spinCommand = {
             return;
         }
 
-        let cooldownExpireTime = cooldownCache.get(username);
+        const cooldownExpireTime = this.cooldownCache.get(username);
         if (cooldownExpireTime && moment().isBefore(cooldownExpireTime)) {
             if (slotsSettings.settings.generalMessages.onCooldown) {
                 const timeRemainingDisplay = util.secondsForHumans(Math.abs(moment().diff(cooldownExpireTime, 'seconds')));
@@ -159,12 +164,12 @@ const spinCommand = {
             return;
         }
 
-        activeSpinners.set(username, true);
+        this.activeSpinners.set(username, true);
 
-        let cooldownSecs = slotsSettings.settings.cooldownSettings.cooldown;
+        const cooldownSecs = slotsSettings.settings.cooldownSettings.cooldown;
         if (cooldownSecs && cooldownSecs > 0) {
             const expireTime = moment().add(cooldownSecs, 'seconds');
-            cooldownCache.set(username, expireTime, cooldownSecs);
+            this.cooldownCache.set(username, expireTime, cooldownSecs);
         }
 
         try {
@@ -172,13 +177,13 @@ const spinCommand = {
         } catch (error) {
             logger.error(error);
             twitchChat.sendChatMessage(`Sorry ${username}, there was an error deducting currency from your balance so the spin has been canceled.`, null, chatter);
-            activeSpinners.del(username);
+            this.activeSpinners.del(username);
             return;
         }
 
         let successChance = 50;
 
-        let successChancesSettings = slotsSettings.settings.spinSettings.successChances;
+        const successChancesSettings = slotsSettings.settings.spinSettings.successChances;
         if (successChancesSettings) {
             try {
                 successChance = successChancesSettings.basePercent;
@@ -228,26 +233,13 @@ const spinCommand = {
             twitchChat.sendChatMessage(spinSuccessfulMsg, null, chatter);
         }
 
-        activeSpinners.del(username);
-
+        this.activeSpinners.del(username);
     }
-};
 
-function registerSpinCommand() {
-    if (!systemCommandManager.hasSystemCommand(SPIN_COMMAND_ID)) {
-        systemCommandManager.registerSystemCommand(spinCommand);
+    purgeCaches() {
+        this.cooldownCache.flushAll();
+        this.activeSpinners.flushAll();
     }
 }
 
-function unregisterSpinCommand() {
-    systemCommandManager.unregisterSystemCommand(SPIN_COMMAND_ID);
-}
-
-function purgeCaches() {
-    cooldownCache.flushAll();
-    activeSpinners.flushAll();
-}
-
-exports.purgeCaches = purgeCaches;
-exports.registerSpinCommand = registerSpinCommand;
-exports.unregisterSpinCommand = unregisterSpinCommand;
+module.exports = new SpinCommand();

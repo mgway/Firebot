@@ -70,7 +70,8 @@
             <div class="toggle-button-container">
               <toggle-button
                 toggle-model="cms.chatModerationData.settings.urlModeration.enabled"
-                on-toggle="toggleUrlModerationFeature()"
+                auto-update-value="true"
+                on-toggle="cms.saveChatModerationSettings()"
                 font-size="40"
               />
             </div>

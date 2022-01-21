@@ -24,9 +24,9 @@ class CustomCommandManager extends JsonDbManager {
      *
      * @param {CustomCommandDefinition} command
      * @param {boolean} imported
-     * @returns {Promise.<CustomCommandDefinition>}
+     * @returns {CustomCommandDefinition}
      */
-    async saveItem(command, user, imported = false) {
+    saveItem(command, user, imported = false) {
         if (command.id == null || command.id === "") {
             command.createdAt = imported ? "Imported" : moment().format();
             command.createdBy = user;
@@ -49,7 +49,7 @@ class CustomCommandManager extends JsonDbManager {
     /**
      * @param {string} trigger
      */
-    async deleteItemByTrigger(trigger) {
+    deleteItemByTrigger(trigger) {
         const command = this.getAllItems().find(c => c.trigger === trigger);
 
         this.deleteItem(command.id);

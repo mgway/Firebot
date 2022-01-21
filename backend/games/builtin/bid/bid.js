@@ -1,6 +1,6 @@
 "use strict";
 
-const bidCommand = require("./bid-command");
+const bidCommand = require("../../../chat/commands/builtin/games/bid");
 
 /**
  * @type {import('../../game-manager').FirebotGame}
@@ -98,10 +98,10 @@ module.exports = {
         }
     },
     onLoad: () => {
-        bidCommand.registerBidCommand();
+        bidCommand.register();
     },
     onUnload: () => {
-        bidCommand.unregisterBidCommand();
+        bidCommand.unregister();
         bidCommand.purgeCaches();
     },
     onSettingsUpdate: () => {

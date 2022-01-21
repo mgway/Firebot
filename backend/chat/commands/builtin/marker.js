@@ -1,45 +1,53 @@
 "use strict";
 
+const SystemCommand = require("../system-command");
 const twitchApi = require("../../../twitch-api/api");
 const accountAccess = require("../../../common/account-access");
 const chat = require("../../twitch-chat");
 const logger = require("../../../logwrapper");
 const utils = require("../../../utility");
 
-const model = {
-    definition: {
-        id: "firebot:create-marker",
-        name: "Create Stream Marker",
-        active: true,
-        type: "system",
-        trigger: "!marker",
-        usage: "[marker name]",
-        description: "Create a stream marker.",
-        autoDeleteTrigger: false,
-        scanWholeMessage: false,
-        minArgs: 1,
-        cooldown: {
-            user: 0,
-            global: 0
-        },
-        restrictionData: {
-            restrictions: [
-                {
-                    id: "sys-cmd-mods-only-perms",
-                    type: "firebot:permissions",
-                    mode: "roles",
-                    roleIds: [
-                        "mod",
-                        "broadcaster"
-                    ]
-                }
-            ]
-        }
-    },
-    onTriggerEvent: async event => {
+class Marker extends SystemCommand {
+    constructor() {
+        super({
+            id: "firebot:create-marker",
+            name: "Create Stream Marker",
+            active: true,
+            type: "system",
+            trigger: "!marker",
+            usage: "[marker name]",
+            description: "Create a stream marker.",
+            autoDeleteTrigger: false,
+            scanWholeMessage: false,
+            minArgs: 1,
+            cooldown: {
+                user: 0,
+                global: 0
+            },
+            hidden: false,
+            restrictionData: {
+                restrictions: [
+                    {
+                        id: "sys-cmd-mods-only-perms",
+                        type: "firebot:permissions",
+                        mode: "roles",
+                        roleIds: [
+                            "mod",
+                            "broadcaster"
+                        ]
+                    }
+                ]
+            }
+        });
+    }
 
+    /**
+     * @override
+     * @inheritdoc
+     * @param {SystemCommand.CommandEvent} event
+     */
+    async onTriggerEvent(event) {
         const { args } = event.userCommand;
-
         const streamer = accountAccess.getAccounts().streamer;
 
         try {
@@ -56,6 +64,6 @@ const model = {
             chat.sendChatMessage(`Failed to create a stream marker.`);
         }
     }
-};
+}
 
-module.exports = model;
+module.exports = new Marker();

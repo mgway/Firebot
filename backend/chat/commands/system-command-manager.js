@@ -70,10 +70,16 @@ class SystemCommandManager extends JsonDbManager {
      * @param {string} commandId
      * @returns {void}
      */
-    deleteItem(commandId) {
+    deleteItem(commandId, deleteDefault = false) {
         super.deleteItem(commandId);
 
-        this.allSystemCommands[commandId].definition = this.defaultCommandDefinitions[commandId];
+        if (deleteDefault) {
+            delete this.defaultCommandDefinitions[commandId];
+            delete this.allSystemCommands[commandId];
+        } else {
+            this.allSystemCommands[commandId].definition = this.defaultCommandDefinitions[commandId];
+        }
+
         this.triggerUiRefresh();
     }
 
@@ -128,8 +134,11 @@ class SystemCommandManager extends JsonDbManager {
 
         let override = this.items[defaultDefinition.id];
         if (override == null) {
-            logger.debug(`Registered System Command ${defaultDefinition.id} without override`);
             this.allSystemCommands[defaultDefinition.id] = command;
+
+            this.triggerUiRefresh();
+            logger.debug(`Registered System Command ${defaultDefinition.id} without override`);
+
             return;
         }
 
@@ -216,10 +225,7 @@ frontendCommunicator.onAsync("getSystemCommands",
     async () => systemCommandManager.getSystemCommandDefinitions());
 
 frontendCommunicator.onAsync("saveSystemCommand",
-    async (/** @type {SystemCommandDefinition} */ systemCommand) => {
-        const savedCommand = systemCommandManager.saveItem(systemCommand);
-        return savedCommand.definition;
-    });
+    async (/** @type {SystemCommandDefinition} */ systemCommand) => systemCommandManager.saveItem(systemCommand));
 
 frontendCommunicator.onAsync("saveAllSystemCommands",
     async (/** @type {SystemCommandDefinition[]} */ allSystemCommands) => systemCommandManager.saveAllItems(allSystemCommands));

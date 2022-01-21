@@ -4,6 +4,10 @@ exports.loadCommands = () => {
     const systemCommandManager = require("./system-command-manager");
 
     [
+        'games/bid',
+        'games/heist',
+        'games/spin',
+        'games/trivia',
         'steam/steam',
         'command-list',
         'command-management',
@@ -12,10 +16,14 @@ exports.loadCommands = () => {
         'marker',
         'quotes',
         'spam-raid-protection',
-        'uptime'
+        'uptime',
+        'url-permit-command'
     ].forEach(filename => {
-        const definition = require(`./builtin/${filename}.js`);
-        systemCommandManager.registerSystemCommand(definition);
+        const command = require(`./builtin/${filename}.js`);
+
+        if (command.registeredByDefault) {
+            systemCommandManager.registerSystemCommand(command);
+        }
     });
 
     const currencyManager = require('../../currency/currencyManager');

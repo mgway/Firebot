@@ -233,20 +233,21 @@
             };
 
             $ctrl.save = function() {
-                if ($ctrl.command.trigger == null || $ctrl.command.trigger === "") {
+                const command = $ctrl.command;
+                if (command.trigger == null || command.trigger === "") {
                     ngToast.create("Please provide a trigger.");
                     return;
                 }
 
-                if ($ctrl.command.simple) {
-                    const responseMessage = $ctrl.command.effects.list[0] && $ctrl.command.effects.list[0].message && $ctrl.command.effects.list[0].message.trim();
+                if (command.simple) {
+                    const responseMessage = command.effects.list[0] && command.effects.list[0].message && command.effects.list[0].message.trim();
                     if (!responseMessage || responseMessage === "") {
                         ngToast.create("Please provide a response message.");
                         return;
                     }
                 }
 
-                if (commandsService.triggerExists($ctrl.command.trigger)) {
+                if (commandsService.triggerExists(command.trigger, command.id)) {
                     ngToast.create("A command with this trigger already exists.");
                     return;
                 }

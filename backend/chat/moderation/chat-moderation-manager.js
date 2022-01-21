@@ -4,7 +4,7 @@ const profileManager = require("../../common/profile-manager");
 const { Worker } = require("worker_threads");
 const frontendCommunicator = require("../../common/frontend-communicator");
 const rolesManager = require("../../roles/custom-roles-manager");
-const permitCommand = require("./url-permit-command");
+const permitCommand = require("../commands/builtin/url-permit-command");
 const utils = require("../../utility");
 
 let getChatModerationSettingsDb = () => profileManager.getJsonDbInProfile("/chat/moderation/chat-moderation-settings");
@@ -229,6 +229,14 @@ async function moderateMessage(chatMessage) {
 }
 
 frontendCommunicator.on("chatMessageSettingsUpdate", settings => {
+    if (chatModerationSettings.urlModeration.enabled !== settings.urlModeration.enabled) {
+        if (settings.urlModeration.enabled) {
+            permitCommand.register();
+        } else {
+            permitCommand.unregister();
+        }
+    }
+
     chatModerationSettings = settings;
     try {
         getChatModerationSettingsDb().push("/", settings);
@@ -337,7 +345,7 @@ function load() {
             }
 
             if (settings.urlModeration.enabled) {
-                permitCommand.registerPermitCommand();
+                permitCommand.register();
             }
         }
 

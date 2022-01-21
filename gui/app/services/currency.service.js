@@ -43,7 +43,7 @@
 
         // Saved the currency modal.
         service.saveCurrency = function(currency, updateName = false) {
-            let currencyId = currency.id,
+            const currencyId = currency.id,
                 allCurrencies = service.getCurrencies();
 
             // Check to make sure we don't have a currency with the same name.
@@ -82,15 +82,19 @@
             // Send success message.
             ipcRenderer.send("createCurrency", currencyId);
             ipcRenderer.send("refreshCurrencyCache");
-            ipcRenderer.send("refreshCurrencyCommands", {"action": "create", "currency": currency});
+            backendCommunicator.send("createCurrencyCommand", currency);
         };
 
         // Updated a pre-existing currency through the modal.
         service.updateCurrency = function(currency) {
-            let currencyId = currency.id;
+            const currencyId = currency.id;
             currencyDb.push("/" + currencyId, currency);
             ipcRenderer.send("refreshCurrencyCache");
-            ipcRenderer.send("refreshCurrencyCommands", {"action": "update", "currency": currency});
+            backendCommunicator.send("unregisterCurrencyCommand", currencyId);
+
+            if (currency.active) {
+                backendCommunicator.send("registerCurrencyCommand", currencyId);
+            }
         };
 
         // Purged a currency through the modal.
@@ -100,11 +104,11 @@
 
         // Deleted a currency through the modal.
         service.deleteCurrency = function(currency) {
-            let currencyId = currency.id;
+            const currencyId = currency.id;
             currencyDb.delete("/" + currencyId);
             ipcRenderer.send("deleteCurrency", currencyId);
             ipcRenderer.send("refreshCurrencyCache");
-            ipcRenderer.send("refreshCurrencyCommands", {"action": "delete", "currency": currency});
+            backendCommunicator.send("deleteCurrencyCommand", currencyId);
         };
 
         backendCommunicator.on("import-currency", currency => {
