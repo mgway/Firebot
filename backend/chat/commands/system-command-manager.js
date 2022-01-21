@@ -108,16 +108,16 @@ class SystemCommandManager extends JsonDbManager {
      * @param {Array} defaultArray
      * @returns {Array}
      */
-    _updateOverrideArray(overrideArray, defaultArray) {
-        overrideArray = overrideArray.map(item => {
-            if (defaultArray.includes(item)) {
+    _updateSubCommands(overrideArray, defaultArray) {
+        overrideArray = overrideArray.filter(item => {
+            if (defaultArray.some(defaultItem => defaultItem.arg === item.arg)) {
                 return item;
             }
         });
 
-        overrideArray = defaultArray.map(item => {
-            if (!overrideArray.includes(item)) {
-                return item;
+        defaultArray.forEach((item, index) => {
+            if (!overrideArray.some(overrideItem => overrideItem.arg === item.arg)) {
+                overrideArray.splice(index, 1, item);
             }
         });
 
@@ -130,6 +130,11 @@ class SystemCommandManager extends JsonDbManager {
      */
     registerSystemCommand(command) {
         const defaultDefinition = command.definition;
+
+        if (defaultDefinition.subCommands && defaultDefinition.subCommands.length) {
+            defaultDefinition.subCommands.forEach(sc => sc.active = true);
+        }
+
         this.defaultCommandDefinitions[defaultDefinition.id] = defaultDefinition;
 
         let override = this.items[defaultDefinition.id];
@@ -149,14 +154,13 @@ class SystemCommandManager extends JsonDbManager {
         }
 
         if (override.subCommands && override.subCommands.length) {
-            override.subCommands = this._updateOverrideArray(override.subCommands, defaultDefinition.subCommands);
+            override.subCommands = this._updateSubCommands(override.subCommands, defaultDefinition.subCommands);
         }
 
         this.allSystemCommands[override.id] = {
             definition: override,
             onTriggerEvent: command.onTriggerEvent
         };
-
 
         logger.debug(`Registered System Command ${defaultDefinition.id} with override`);
         this.triggerUiRefresh();
@@ -192,8 +196,8 @@ class SystemCommandManager extends JsonDbManager {
      * @param {string} commandId
      * @returns {SystemCommand}
      */
-    getSystemCommandById(id) {
-        return this.allSystemCommands[id];
+    getSystemCommandById(commandId) {
+        return this.allSystemCommands[commandId];
     }
 
     /**

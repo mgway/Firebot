@@ -197,7 +197,6 @@
                         } else if ($ctrl.subcommand.arg === '@\\w+') {
                             $ctrl.subcommandTypeTitle = "Username";
                         }
-                        console.log($ctrl.subcommand.arg);
                     }
                 }
             };
