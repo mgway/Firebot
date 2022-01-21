@@ -15,7 +15,7 @@ exports.loadCommands = () => {
         'uptime'
     ].forEach(filename => {
         const definition = require(`./builtin/${filename}.js`);
-        systemCommandManager.registerGame(definition);
+        systemCommandManager.registerSystemCommand(definition);
     });
 
     const currencyManager = require('../../currency/currencyManager');

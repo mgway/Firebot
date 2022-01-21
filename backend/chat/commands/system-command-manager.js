@@ -75,6 +75,47 @@ class SystemCommandManager extends JsonDbManager {
     }
 
     /**
+     * @private
+     * @param {Object} overrideObject
+     * @param {Object} defaultObject
+     * @returns {Object}
+     */
+    _updateOverrideObject(overrideObject, defaultObject) {
+        Object.keys(overrideObject).forEach(key => {
+            if (defaultObject[key] == null) {
+                delete overrideObject[key];
+            }
+        });
+
+        return {
+            ...defaultObject,
+            ...overrideObject
+        };
+    }
+
+    /**
+     * @private
+     * @param {Array} overrideArray
+     * @param {Array} defaultArray
+     * @returns {Array}
+     */
+    _updateOverrideArray(overrideArray, defaultArray) {
+        overrideArray = overrideArray.map(item => {
+            if (defaultArray.includes(item)) {
+                return item;
+            }
+        });
+
+        overrideArray = defaultArray.map(item => {
+            if (!overrideArray.includes(item)) {
+                return item;
+            }
+        });
+
+        return overrideArray;
+    }
+
+    /**
      * @param {object} command
      * @returns {void}
      */
@@ -82,41 +123,25 @@ class SystemCommandManager extends JsonDbManager {
         const defaultDefinition = command.definition;
         this.defaultCommandDefinitions[defaultDefinition.id] = defaultDefinition;
 
-        const override = this.items[defaultDefinition.id];
+        let override = this.items[defaultDefinition.id];
         if (override == null) {
             logger.debug(`Registered System Command ${defaultDefinition.id} without override`);
             this.allSystemCommands[defaultDefinition.id] = command;
             return;
         }
 
-        override.options = {
-            ...defaultDefinition.options,
-            ...override.options
-        };
+        override = this._updateOverrideObject(override, defaultDefinition);
 
-        if (!defaultDefinition.subCommands || !defaultDefinition.subCommands.length) {
-            override.subCommands = [];
-        } else if (!override.subCommands || !override.subCommands.length) {
-            override.subCommands = defaultDefinition.subCommands;
-        } else {
-            override.subCommands = override.subCommands.map(osc => {
-                if (defaultDefinition.subCommands.includes(osc)) {
-                    return osc;
-                }
-            });
+        if (override.options != null) {
+            override.options = this._updateOverrideObject(override.options, defaultDefinition.options);
+        }
 
-            override.subCommands = defaultDefinition.subCommands.map(dsc => {
-                if (!override.subCommands.includes(dsc)) {
-                    return dsc;
-                }
-            });
+        if (override.subCommands && override.subCommands.length) {
+            override.subCommands = this._updateOverrideArray(override.subCommands, defaultDefinition.subCommands);
         }
 
         this.allSystemCommands[override.id] = {
-            definition: {
-                ...defaultDefinition,
-                ...override
-            },
+            definition: override,
             onTriggerEvent: command.onTriggerEvent
         };
 
