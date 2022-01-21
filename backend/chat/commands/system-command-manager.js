@@ -4,21 +4,17 @@ const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
 const logger = require("../../logwrapper");
 const systemCommandDefinitionLoader = require("./system-command-loader");
+const commandTypes = require("../../../shared/types/command-types"); // eslint-disable-line no-unused-vars
 
 /**
  * @typedef SystemCommand
- * @prop {string} id - the id of the effect list
- * @prop {string} name - the name of the effect list
- * @prop {object[]} args - the arguments of the effect list
- * @prop {object} effects - the saved effects in the list
- * @prop {string} effects.id - the effect list root id
- * @prop {any[]} effects.list - the array of effects objects
- * @prop {string[]} sortTags - the sort tags for the effect list
- */
+ * @prop {commandTypes.SystemCommandDefinition[]} definition
+ * @prop {function} onTriggerEvent
+ * */
 
 /**
  * @hideconstructor
- * @extends {JsonDbManager<SystemCommand>}
+ * @extends {JsonDbManager<commandTypes.SystemCommandDefinition[]>}
  * {@link JsonDbManager}
  */
 class SystemCommandManager extends JsonDbManager {
@@ -32,6 +28,7 @@ class SystemCommandManager extends JsonDbManager {
 
     /**
      * @override
+     * @returns {void}
      */
     loadItems() {
         // First load the overrides
@@ -43,11 +40,17 @@ class SystemCommandManager extends JsonDbManager {
 
     /**
      * @override
+     * @returns {commandTypes.SystemCommandDefinition[]}
      */
     getAllItems() {
         return Object.values(this.allSystemCommands);
     }
 
+    /**
+     * @override
+     * @param {commandTypes.SystemCommandDefinition} commandDefinition
+     * @returns {commandTypes.SystemCommandDefinition}
+     */
     saveItem(commandDefinition) {
         super.saveItem(commandDefinition);
         this.allSystemCommands[commandDefinition.id].definition = commandDefinition;
@@ -55,6 +58,11 @@ class SystemCommandManager extends JsonDbManager {
         return commandDefinition;
     }
 
+    /**
+     * @override
+     * @param {string} commandId
+     * @returns {void}
+     */
     deleteItem(commandId) {
         super.deleteItem(commandId);
 
@@ -62,6 +70,10 @@ class SystemCommandManager extends JsonDbManager {
         this.triggerUiRefresh();
     }
 
+    /**
+     * @param {object} command
+     * @returns {void}
+     */
     registerSystemCommand(command) {
         const defaultDefinition = command.definition;
         this.defaultCommandDefinitions[defaultDefinition.id] = defaultDefinition;
@@ -109,28 +121,51 @@ class SystemCommandManager extends JsonDbManager {
         this.triggerUiRefresh();
     }
 
-    unregisterSystemCommand(id) {
-        delete this.allSystemCommands[id];
-        logger.debug(`Unregistered System Command ${id}`);
+    /**
+     * @param {string} commandId
+     * @returns {void}
+     */
+    unregisterSystemCommand(commandId) {
+        delete this.allSystemCommands[commandId];
+        logger.debug(`Unregistered System Command ${commandId}`);
         this.triggerUiRefresh();
     }
 
-    hasSystemCommand(id) {
-        return !!this.allSystemCommands[id];
+    /**
+     * @param {string} commandId
+     * @returns {boolean}
+     */
+    hasSystemCommand(commandId) {
+        return !!this.allSystemCommands[commandId];
     }
 
-    getSystemCommandTrigger(id) {
-        return this.allSystemCommands[id].definition.trigger || null;
+    /**
+     * @param {string} commandId
+     * @returns {string}
+     */
+    getSystemCommandTrigger(commandId) {
+        return this.allSystemCommands[commandId].definition.trigger || null;
     }
 
+    /**
+     * @param {string} commandId
+     * @returns {SystemCommand}
+     */
     getSystemCommandById(id) {
         return this.allSystemCommands[id];
     }
 
+    /**
+     * @returns {commandTypes.SystemCommandDefinition}
+     */
     getSystemCommandDefinitions() {
         return this.getAllItems().map(c => c.definition);
     }
 
+    /**
+     * @param {commandTypes.SystemCommandDefinition} commandDefinition
+     * @returns {void}
+     */
     saveDefaultSystemCommandDefinition(commandDefinition) {
         this.defaultCommandDefinitions[commandDefinition.id] = commandDefinition;
     }
@@ -149,13 +184,13 @@ frontendCommunicator.onAsync("getSystemCommands",
     async () => systemCommandManager.getSystemCommandDefinitions());
 
 frontendCommunicator.onAsync("saveSystemCommand",
-    async (/** @type {SystemCommand} */ systemCommand) => {
+    async (/** @type {commandTypes.SystemCommandDefinition} */ systemCommand) => {
         const savedCommand = systemCommandManager.saveItem(systemCommand);
         return savedCommand.definition;
     });
 
 frontendCommunicator.onAsync("saveAllSystemCommands",
-    async (/** @type {SystemCommand[]} */ allSystemCommands) => systemCommandManager.saveAllItems(allSystemCommands));
+    async (/** @type {commandTypes.SystemCommandDefinition[]} */ allSystemCommands) => systemCommandManager.saveAllItems(allSystemCommands));
 
 frontendCommunicator.on("deleteSystemCommand",
     (/** @type {string} */ systemCommandId) => systemCommandManager.deleteItem(systemCommandId));
