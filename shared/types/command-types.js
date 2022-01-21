@@ -75,7 +75,7 @@ const effectTypes = require("./effect-types"); // eslint-disable-line no-unused-
  */
 
 /**
- * @typedef CommandDefinitionSystem
+ * @typedef SystemCommandDefinition
  * @prop {string} name - the name of command
  * @prop {string} description - the description of the command
  * @prop {"system" | "custom"} type - the type of the command
@@ -83,11 +83,7 @@ const effectTypes = require("./effect-types"); // eslint-disable-line no-unused-
  */
 
 /**
- * @typedef {CommandDefinition & CommandDefinitionSystem} SystemCommandDefinition
- */
-
-/**
- * @typedef CommandDefinitionCustom
+ * @typedef CustomCommandDefinition
  * @prop {"system" | "custom"} [type] - the type of the command
  * @prop {string} [description] - the description of the command
  * @prop {boolean} simple - whether this command was created in simple mode
@@ -107,10 +103,6 @@ const effectTypes = require("./effect-types"); // eslint-disable-line no-unused-
  * @prop {boolean} [ignoreStreamer] - whether the command should trigger if the streamer account uses it
  *
  * @prop {string[]} sortTags - the sort tags for the effect list
- */
-
-/**
- * @typedef {CommandDefinition & CommandDefinitionCustom} CustomCommandDefinition
  */
 
 exports.unused = {};

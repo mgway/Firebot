@@ -11,8 +11,12 @@ const { TriggerType } = require("../common/EffectType");
 const accountAccess = require("../common/account-access");
 const effectRunner = require("../common/effect-runner");
 
-// Used for types
-const effectTypes = require("../../shared/types/effect-types"); // eslint-disable-line no-unused-vars
+
+/**
+ * @typedef EffectList
+ * @prop {string} id - The id of the effect list
+ * @prop {any[]} list - the array of effect objects
+*/
 
 /**
  * @typedef Counter
@@ -22,9 +26,9 @@ const effectTypes = require("../../shared/types/effect-types"); // eslint-disabl
  * @prop {boolean} saveToTxtFile - whether the value of the counter should be saved in a text file
  * @prop {number} [minimum] - the minimum value the counter can be
  * @prop {number} [maximum] - the maximum value the counter can be
- * @prop {effectTypes.Effects} [updateEffects] - the effect list that is triggered when the counter is updated
- * @prop {effectTypes.Effects} [minimumEffects] - the effect list that is triggered when the minimum value is hit
- * @prop {effectTypes.Effects} [maximumEffects] - the effect list that is triggered when the maximum value is hit
+ * @prop {EffectList} [updateEffects] - the effect list that is triggered when the counter is updated
+ * @prop {EffectList} [minimumEffects] - the effect list that is triggered when the minimum value is hit
+ * @prop {EffectList} [maximumEffects] - the effect list that is triggered when the maximum value is hit
  */
 
 /**

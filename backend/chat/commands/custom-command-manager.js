@@ -4,12 +4,15 @@ const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
 const moment = require("moment");
 
-// Used for types
-const commandTypes = require("../../../shared/types/command-types"); // eslint-disable-line no-unused-vars
+/**
+ * @typedef { import("../../../shared/types/command-types").CommandDefinition &
+ * import("../../../shared/types/command-types").CustomCommandDefinition
+ * } CustomCommandDefinition
+ * */
 
 /**
  * @hideconstructor
- * @extends {JsonDbManager<commandTypes.CustomCommandDefinition>}
+ * @extends {JsonDbManager<CustomCommandDefinition>}
  * {@link JsonDbManager}
  */
 class CustomCommandManager extends JsonDbManager {
@@ -19,9 +22,9 @@ class CustomCommandManager extends JsonDbManager {
 
     /**
      *
-     * @param {CustomCommand} command
+     * @param {CustomCommandDefinition} command
      * @param {boolean} imported
-     * @returns {Promise.<commandTypes.CustomCommandDefinition>}
+     * @returns {Promise.<CustomCommandDefinition>}
      */
     async saveItem(command, user, imported = false) {
         if (command.id == null || command.id === "") {
@@ -67,10 +70,10 @@ frontendCommunicator.onAsync("getCustomCommands",
     async () => customCommandManager.getAllItems());
 
 frontendCommunicator.onAsync("saveCustomCommand",
-    async (/** @type {commandTypes.CustomCommandDefinition} */ {customCommand, user}) => customCommandManager.saveItem(customCommand, user));
+    async (/** @type {CustomCommandDefinition} */ {customCommand, user}) => customCommandManager.saveItem(customCommand, user));
 
 frontendCommunicator.onAsync("saveAllCustomCommands",
-    async (/** @type {commandTypes.CustomCommandDefinition[]} */ allCustomCommands) => customCommandManager.saveAllItems(allCustomCommands));
+    async (/** @type {CustomCommandDefinition[]} */ allCustomCommands) => customCommandManager.saveAllItems(allCustomCommands));
 
 frontendCommunicator.on("deleteCustomCommand",
     (/** @type {string} */ customCommandId) => customCommandManager.deleteItem(customCommandId));
