@@ -23,7 +23,6 @@ class SystemCommandManager extends JsonDbManager {
 
         this.allSystemCommands = {};
         this.defaultCommandDefinitions = {};
-        this.commandEventDefinitions = {};
     }
 
     /**
