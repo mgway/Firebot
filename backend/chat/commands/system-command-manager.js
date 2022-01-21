@@ -4,6 +4,8 @@ const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
 const logger = require("../../logwrapper");
 const systemCommandDefinitionLoader = require("./system-command-loader");
+
+// Used for types
 const commandTypes = require("../../../shared/types/command-types"); // eslint-disable-line no-unused-vars
 
 /**
@@ -14,14 +16,17 @@ const commandTypes = require("../../../shared/types/command-types"); // eslint-d
 
 /**
  * @hideconstructor
- * @extends {JsonDbManager<commandTypes.SystemCommandDefinition[]>}
+ * @extends {JsonDbManager<commandTypes.SystemCommandDefinition>}
  * {@link JsonDbManager}
  */
 class SystemCommandManager extends JsonDbManager {
     constructor() {
         super("System Command", "/chat/commands", "/systemCommandOverrides");
 
+        /** @type {SystemCommand[]} */
         this.allSystemCommands = {};
+
+        /** @type {Object.<string, commandTypes.SystemCommandDefinition>} */
         this.defaultCommandDefinitions = {};
     }
 

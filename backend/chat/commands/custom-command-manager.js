@@ -3,6 +3,8 @@
 const frontendCommunicator = require("../../common/frontend-communicator");
 const JsonDbManager = require("../../database/json-db-manager");
 const moment = require("moment");
+
+// Used for types
 const commandTypes = require("../../../shared/types/command-types"); // eslint-disable-line no-unused-vars
 
 /**

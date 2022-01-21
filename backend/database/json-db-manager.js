@@ -4,6 +4,9 @@ const profileManager = require("../common/profile-manager");
 const logger = require("../logwrapper");
 const uuidv1 = require("uuid/v1");
 
+// Used for types
+const { JsonDB } = require("node-json-db"); // eslint-disable-line no-unused-vars
+
 /**
  * @template T
  * @hideconstructor
@@ -12,6 +15,7 @@ class JsonDbManager {
     /**
      * @param {string} type - The type of data in the json file
      * @param {string} path - The path to the json file
+     * @param {string} dataPath - An optional datapath in the json file
      */
     constructor(type, path, dataPath = "") {
         /** @protected */
@@ -20,10 +24,16 @@ class JsonDbManager {
         /** @protected */
         this.dataPath = dataPath;
 
-        /** @protected */
+        /**
+         * @protected
+         * @type {Object.<string, T>}
+         * */
         this.items = {};
 
-        /** @protected */
+        /**
+         * @protected
+         * @type {JsonDB}
+         * */
         this.db = profileManager.getJsonDbInProfile(path);
     }
 

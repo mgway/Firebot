@@ -10,6 +10,8 @@ const logger = require("../logwrapper");
 const { TriggerType } = require("../common/EffectType");
 const accountAccess = require("../common/account-access");
 const effectRunner = require("../common/effect-runner");
+
+// Used for types
 const effectTypes = require("../../shared/types/effect-types"); // eslint-disable-line no-unused-vars
 
 /**
